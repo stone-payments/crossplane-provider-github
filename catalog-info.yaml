@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+manifestVersion: 0.0.1
+kind: UNKNOWN
+metadata:
+  name: APPLICATION_NAME
+  description: APPLICATION_DESCRIPTION
+spec:
+  type: UNKNOWN
+  lifecycle: UNKNOWN
+  owner:
+  - APPLICATION OWNER
