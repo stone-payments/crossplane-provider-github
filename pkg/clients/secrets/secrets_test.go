@@ -23,7 +23,7 @@ import (
 
 	"github.com/crossplane-contrib/provider-github/apis/secrets/v1alpha1"
 	gc "github.com/crossplane-contrib/provider-github/pkg/clients"
-	"github.com/crossplane-contrib/provider-github/pkg/fake"
+	fake "github.com/crossplane-contrib/provider-github/pkg/fake/secrets"
 	v1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
@@ -95,7 +95,7 @@ func TestCreateOrUpdateSec(t *testing.T) {
 				p:      mockSpec(&value),
 				name:   "fakeTest",
 				client: test.NewMockClient(),
-				gh: &fake.MockService{
+				gh: &fake.MockServiceSecrets{
 					MockGetRepoPublicKey: func(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error) {
 						return &github.PublicKey{KeyID: gc.StringPtr("172354871263548712365487"), Key: gc.StringPtr("ZjRrM2szeQ==")}, &github.Response{}, errBoom
 					},
@@ -113,7 +113,7 @@ func TestCreateOrUpdateSec(t *testing.T) {
 				p:      mockSpec(&value),
 				name:   "fakeTest",
 				client: test.NewMockClient(),
-				gh: &fake.MockService{
+				gh: &fake.MockServiceSecrets{
 					MockGetRepoPublicKey: func(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error) {
 						return &github.PublicKey{KeyID: gc.StringPtr("172354871263548712365487"), Key: gc.StringPtr("ZjRrM2szeQ==")}, &github.Response{}, nil
 					},
@@ -134,7 +134,7 @@ func TestCreateOrUpdateSec(t *testing.T) {
 				p:      mockSpec(&value),
 				name:   "fakeTest",
 				client: test.NewMockClient(),
-				gh: &fake.MockService{
+				gh: &fake.MockServiceSecrets{
 					MockGetRepoPublicKey: func(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error) {
 						return &github.PublicKey{KeyID: gc.StringPtr("172354871263548712365487"), Key: gc.StringPtr("ZjRrM2szeQ==")}, &github.Response{}, nil
 					},
@@ -192,7 +192,7 @@ func TestIsUpToDate(t *testing.T) {
 				p:      mockSpec(&value),
 				o:      mockStatus(fakeHashCorrect, LastUpdateCorrect),
 				name:   "fakeTest",
-				gh: &fake.MockService{
+				gh: &fake.MockServiceSecrets{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 						return &github.Secret{}, &github.Response{}, errBoom
 					},
@@ -211,7 +211,7 @@ func TestIsUpToDate(t *testing.T) {
 				o:      mockStatus(fakeHashCorrect, LastUpdateCorrect),
 				name:   "fakeTest",
 				client: test.NewMockClient(),
-				gh: &fake.MockService{
+				gh: &fake.MockServiceSecrets{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{}, nil
 					},
@@ -230,7 +230,7 @@ func TestIsUpToDate(t *testing.T) {
 				o:      mockStatus(fakeHashFalse, LastUpdateCorrect),
 				name:   "fakeTest",
 				client: test.NewMockClient(),
-				gh: &fake.MockService{
+				gh: &fake.MockServiceSecrets{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{}, nil
 					},
@@ -249,7 +249,7 @@ func TestIsUpToDate(t *testing.T) {
 				o:      mockStatus(fakeHashCorrect, lastUpdateFalse),
 				name:   "fakeTest",
 				client: test.NewMockClient(),
-				gh: &fake.MockService{
+				gh: &fake.MockServiceSecrets{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{}, nil
 					},
@@ -268,7 +268,7 @@ func TestIsUpToDate(t *testing.T) {
 				o:      mockStatus(fakeHashCorrect, LastUpdateCorrect),
 				name:   "fakeTest",
 				client: test.NewMockClient(),
-				gh: &fake.MockService{
+				gh: &fake.MockServiceSecrets{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{}, nil
 					},

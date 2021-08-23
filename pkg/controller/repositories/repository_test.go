@@ -22,7 +22,7 @@ import (
 
 	"github.com/crossplane-contrib/provider-github/apis/repositories/v1alpha1"
 	"github.com/crossplane-contrib/provider-github/pkg/clients/repositories"
-	"github.com/crossplane-contrib/provider-github/pkg/fake"
+	fake "github.com/crossplane-contrib/provider-github/pkg/fake/repositories"
 	v1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
@@ -90,7 +90,7 @@ func TestObserve(t *testing.T) {
 			reason: "Must return an error if GET repository fails and the error is different than 404",
 			args: args{
 				mg: newRepository(),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{
@@ -111,7 +111,7 @@ func TestObserve(t *testing.T) {
 			reason: "Must not return an error if GET repository returns 404 status code",
 			args: args{
 				mg: newRepository(),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{
@@ -137,7 +137,7 @@ func TestObserve(t *testing.T) {
 					},
 				},
 				mg: newRepository(),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						userType := "Organization"
 						return &github.Repository{
@@ -168,7 +168,7 @@ func TestObserve(t *testing.T) {
 					},
 				},
 				mg: newRepository(),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						userType := fakeType
 						return &github.Repository{
@@ -197,7 +197,7 @@ func TestObserve(t *testing.T) {
 				mg: newRepository(
 					withIssues(fakeTrue),
 				),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						userType := fakeType
 						return &github.Repository{
@@ -225,7 +225,7 @@ func TestObserve(t *testing.T) {
 				mg: newRepository(
 					withIssues(fakeFalse),
 				),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						userType := fakeType
 						return &github.Repository{
@@ -290,7 +290,7 @@ func TestCreate(t *testing.T) {
 		"CreationFailed": {
 			reason: "Must return an error if the repository creation fails",
 			args: args{
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockCreate: func(ctx context.Context, org string, repo *github.Repository) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{},
@@ -307,7 +307,7 @@ func TestCreate(t *testing.T) {
 		"Success": {
 			reason: "Must not return an error if everything goes well",
 			args: args{
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockCreate: func(ctx context.Context, org string, repo *github.Repository) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{},
@@ -364,7 +364,7 @@ func TestUpdate(t *testing.T) {
 			reason: "Must return an error if GET repository fails",
 			args: args{
 				mg: newRepository(),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{
@@ -385,7 +385,7 @@ func TestUpdate(t *testing.T) {
 			reason: "Must return an error if update repository fails",
 			args: args{
 				mg: newRepository(),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						userType := fakeType
 						return &github.Repository{
@@ -415,7 +415,7 @@ func TestUpdate(t *testing.T) {
 		"Success": {
 			reason: "Must not return an error if everything goes well",
 			args: args{
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						userType := fakeType
 						return &github.Repository{
@@ -480,7 +480,7 @@ func TestDelete(t *testing.T) {
 			reason: "Must return error if DeleteRepository fails",
 			args: args{
 				mg: newRepository(),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockDelete: func(ctx context.Context, owner string, repo string) (*github.Response, error) {
 						return &github.Response{},
 							errBoom
@@ -495,7 +495,7 @@ func TestDelete(t *testing.T) {
 			reason: "Must not fail if all calls succeed",
 			args: args{
 				mg: newRepository(),
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockDelete: func(ctx context.Context, owner string, repo string) (*github.Response, error) {
 						return &github.Response{},
 							nil
@@ -544,7 +544,7 @@ func TestGetRepository(t *testing.T) {
 				owner:      "sample",
 				specName:   "sample",
 				statusName: "sample2",
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{},
@@ -564,7 +564,7 @@ func TestGetRepository(t *testing.T) {
 				owner:      "sample",
 				specName:   "sample",
 				statusName: "sample2",
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{},
@@ -584,7 +584,7 @@ func TestGetRepository(t *testing.T) {
 				owner:      "sample",
 				specName:   "sample",
 				statusName: "sample2",
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockGet: func(ctx context.Context, owner string, repo string) (*github.Repository, *github.Response, error) {
 						if repo == "sample" {
 							return &github.Repository{},
@@ -643,7 +643,7 @@ func TestCreateRepository(t *testing.T) {
 				rp: v1alpha1.RepositoryParameters{
 					Owner: fakeOwner,
 				},
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockCreate: func(ctx context.Context, org string, repo *github.Repository) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{},
@@ -664,7 +664,7 @@ func TestCreateRepository(t *testing.T) {
 						Name: "crossplane/provider-template",
 					},
 				},
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockCreateFromTemplate: func(ctx context.Context, templateOwner string, templateRepo string, templateRepoReq *github.TemplateRepoRequest) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{
@@ -689,7 +689,7 @@ func TestCreateRepository(t *testing.T) {
 						Name: "crossplane/provider-templaet",
 					},
 				},
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockCreateFromTemplate: func(ctx context.Context, templateOwner string, templateRepo string, templateRepoReq *github.TemplateRepoRequest) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{
@@ -714,7 +714,7 @@ func TestCreateRepository(t *testing.T) {
 						Name: "crossplane/provider-template",
 					},
 				},
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockCreateFromTemplate: func(ctx context.Context, templateOwner string, templateRepo string, templateRepoReq *github.TemplateRepoRequest) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{
@@ -736,7 +736,7 @@ func TestCreateRepository(t *testing.T) {
 				rp: v1alpha1.RepositoryParameters{
 					Owner: fakeOwner,
 				},
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockCreate: func(ctx context.Context, org string, repo *github.Repository) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{},
@@ -757,7 +757,7 @@ func TestCreateRepository(t *testing.T) {
 						Name: "crossplane",
 					},
 				},
-				github: &fake.MockService{
+				github: &fake.MockServiceRepository{
 					MockCreateFromTemplate: func(ctx context.Context, templateOwner string, templateRepo string, templateRepoReq *github.TemplateRepoRequest) (*github.Repository, *github.Response, error) {
 						return &github.Repository{},
 							&github.Response{},

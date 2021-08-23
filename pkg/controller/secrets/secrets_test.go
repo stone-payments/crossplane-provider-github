@@ -23,7 +23,7 @@ import (
 	"github.com/crossplane-contrib/provider-github/apis/secrets/v1alpha1"
 	gc "github.com/crossplane-contrib/provider-github/pkg/clients"
 	"github.com/crossplane-contrib/provider-github/pkg/clients/secrets"
-	"github.com/crossplane-contrib/provider-github/pkg/fake"
+	fake "github.com/crossplane-contrib/provider-github/pkg/fake/secrets"
 	v1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
@@ -122,7 +122,7 @@ func TestObserve(t *testing.T) {
 			reason: "Repository Secret needs to be updated",
 			args: args{
 				kube: test.NewMockClient(),
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{}, nil
 					},
@@ -142,7 +142,7 @@ func TestObserve(t *testing.T) {
 			reason: "Repository Secret is up to date",
 			args: args{
 				kube: test.NewMockClient(),
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{}, nil
 					},
@@ -202,7 +202,7 @@ func TestCreate(t *testing.T) {
 			reason: "Must return an error if the repository secret fails",
 			args: args{
 				kube: test.NewMockClient(),
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 						return &github.Response{}, errBoom
 					},
@@ -221,7 +221,7 @@ func TestCreate(t *testing.T) {
 			reason: "Must return an error try get repository secret after creation",
 			args: args{
 				kube: test.NewMockClient(),
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 						return &github.Response{}, nil
 					},
@@ -243,7 +243,7 @@ func TestCreate(t *testing.T) {
 			reason: "Must not return an error if everything goes well",
 			args: args{
 				kube: test.NewMockClient(),
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 						return &github.Response{}, nil
 					},
@@ -305,7 +305,7 @@ func TestUpdate(t *testing.T) {
 			reason: "Must return an error if the repository secret fails",
 			args: args{
 				kube: test.NewMockClient(),
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 						return &github.Response{}, errBoom
 					},
@@ -324,7 +324,7 @@ func TestUpdate(t *testing.T) {
 			reason: "Must return an error try get repository secret after update",
 			args: args{
 				kube: test.NewMockClient(),
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 						return &github.Response{}, nil
 					},
@@ -346,7 +346,7 @@ func TestUpdate(t *testing.T) {
 			reason: "Must not return an error if everything goes well",
 			args: args{
 				kube: test.NewMockClient(),
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 						return &github.Response{}, nil
 					},
@@ -405,7 +405,7 @@ func TestDelete(t *testing.T) {
 		"DeleteFailed": {
 			reason: "Must return an error if delete the repository secret fails",
 			args: args{
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockDeleteRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Response, error) {
 						return &github.Response{}, errBoom
 					},
@@ -419,7 +419,7 @@ func TestDelete(t *testing.T) {
 		"Success": {
 			reason: "Delete the repository secret success case",
 			args: args{
-				github: &fake.MockService{
+				github: &fake.MockServiceSecrets{
 					MockDeleteRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Response, error) {
 						return &github.Response{}, nil
 					},
