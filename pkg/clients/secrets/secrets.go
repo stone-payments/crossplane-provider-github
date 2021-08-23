@@ -47,7 +47,7 @@ func NewService(token string) *Service {
 
 // CreateOrUpdateSec create or update repository secret in GitHub
 func CreateOrUpdateSec(ctx context.Context, cr *v1alpha1.SecretsParameters, name string, client client.Client, gh Service) (string, error) {
-	encryptedSecret, hash, err := callEncryptSecret(ctx, client, cr, name, gh)
+	encryptedSecret, hash, err := setupEncryptedSecret(ctx, client, cr, name, gh)
 	if err != nil {
 		return "", err
 	}
@@ -88,15 +88,19 @@ func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.SecretsPa
 	return true, nil
 }
 
-// callEncryptedSecret setup encrypted secret and generates hash to store
-func callEncryptSecret(ctx context.Context, client client.Client, cr *v1alpha1.SecretsParameters, name string, gh Service) (*github.EncryptedSecret, string, error) {
+// setupEncryptedSecret setup encrypted secret and generates hash
+func setupEncryptedSecret(ctx context.Context, client client.Client, cr *v1alpha1.SecretsParameters, name string, gh Service) (*github.EncryptedSecret, string, error) {
 	publicKey, _, err := gh.GetRepoPublicKey(ctx, cr.Owner, cr.Repository)
 	if err != nil {
 		return nil, "", err
 	}
 
 	ref := xpv1.CommonCredentialSelectors{SecretRef: cr.Value}
-	val, _ := resource.ExtractSecret(ctx, client, ref)
+	val, err := resource.ExtractSecret(ctx, client, ref)
+	if err != nil {
+		return nil, "", err
+	}
+
 	encryptedSecret, err := encryptSecret(publicKey, name, string(val))
 	if err != nil {
 		return nil, "", err
