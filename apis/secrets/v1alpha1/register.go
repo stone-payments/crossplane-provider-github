@@ -39,12 +39,12 @@ var (
 
 // Secrets type metadata.
 var (
-	SecretsKind             = reflect.TypeOf(Secrets{}).Name()
+	SecretsKind             = reflect.TypeOf(Ghsecrets{}).Name()
 	SecretsGroupKind        = schema.GroupKind{Group: Group, Kind: SecretsKind}.String()
 	SecretsKindAPIVersion   = SecretsKind + "." + SchemeGroupVersion.String()
 	SecretsGroupVersionKind = SchemeGroupVersion.WithKind(SecretsKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&Secrets{}, &SecretsList{})
+	SchemeBuilder.Register(&Ghsecrets{}, &GhsecretsList{})
 }

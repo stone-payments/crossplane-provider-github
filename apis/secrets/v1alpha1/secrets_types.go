@@ -29,17 +29,17 @@ type SecretsParameters struct {
 	// The name of the repository.
 	Repository string `json:"repository"`
 	// The value of the secret
-	Value *xpv1.SecretKeySelector `json:"value"`
+	Value xpv1.SecretKeySelector `json:"value"`
 }
 
 // SecretsObservation are the observable fields of a Secrets.
 type SecretsObservation struct {
 	// The encrypted value stored
 	// +optional
-	EncryptValue *string `json:"encrypt_value,omitempty"`
+	EncryptValue string `json:"encrypt_value,omitempty"`
 	// Last updated time in Repo Secret GitHub
 	// +optional
-	LastUpdate *string `json:"last_update,omitempty"`
+	LastUpdate string `json:"last_update,omitempty"`
 }
 
 // A SecretsSpec defines the desired state of a Secrets.
@@ -56,14 +56,13 @@ type SecretsStatus struct {
 
 // +kubebuilder:object:root=true
 
-// A Secrets is a managed resource that represents a GitHub Secrets
-// +kubebuilder:printcolumn:name="URL",type="string",JSONPath=".status.atProvider.htmlUrl"
+// A Ghsecrets is a managed resource that represents a GitHub Secrets
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,github}
-type Secrets struct {
+type Ghsecrets struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -73,9 +72,9 @@ type Secrets struct {
 
 // +kubebuilder:object:root=true
 
-// SecretsList contains a list of Secrets
-type SecretsList struct {
+// GhsecretsList contains a list of Secrets
+type GhsecretsList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Secrets `json:"items"`
+	Items           []Ghsecrets `json:"items"`
 }
