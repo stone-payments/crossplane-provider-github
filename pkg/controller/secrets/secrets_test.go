@@ -23,18 +23,20 @@ import (
 	"github.com/crossplane-contrib/provider-github/apis/secrets/v1alpha1"
 	gc "github.com/crossplane-contrib/provider-github/pkg/clients"
 	"github.com/crossplane-contrib/provider-github/pkg/clients/secrets"
-	fake "github.com/crossplane-contrib/provider-github/pkg/fake/secrets"
+	"github.com/crossplane-contrib/provider-github/pkg/clients/secrets/fake"
 	v1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-github/v33/github"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var (
+	superSecret      = []byte("test")
 	unexpectedObject resource.Managed
 	errBoom          = errors.New("boom")
 	fakeRepo         = "repo"
@@ -50,8 +52,8 @@ type args struct {
 	github secrets.Service
 }
 
-func mockMG(hash string) *v1alpha1.Secrets {
-	mg := v1alpha1.Secrets{
+func mockMG(hash string) *v1alpha1.Ghsecrets {
+	mg := v1alpha1.Ghsecrets{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "testSecret",
 			Annotations: map[string]string{
@@ -60,15 +62,15 @@ func mockMG(hash string) *v1alpha1.Secrets {
 		},
 		Status: v1alpha1.SecretsStatus{
 			AtProvider: v1alpha1.SecretsObservation{
-				EncryptValue: &hash,
-				LastUpdate:   gc.StringPtr(fakeUpdateTime.String()),
+				EncryptValue: hash,
+				LastUpdate:   fakeUpdateTime.String(),
 			},
 		},
 		Spec: v1alpha1.SecretsSpec{
 			ForProvider: v1alpha1.SecretsParameters{
 				Owner:      fakeOwner,
 				Repository: fakeRepo,
-				Value: &v1.SecretKeySelector{
+				Value: v1.SecretKeySelector{
 					SecretReference: v1.SecretReference{
 						Name:      "test-repo-secret-secret-gh",
 						Namespace: "crossplane-system",
@@ -107,7 +109,7 @@ func TestObserve(t *testing.T) {
 			reason: "Repository Secret needs to be created",
 			args: args{
 				kube: test.NewMockClient(),
-				mg:   &v1alpha1.Secrets{},
+				mg:   &v1alpha1.Ghsecrets{},
 			},
 			want: want{
 				mg: managed.ExternalObservation{
@@ -116,6 +118,22 @@ func TestObserve(t *testing.T) {
 					ConnectionDetails: managed.ConnectionDetails{},
 				},
 				err: nil,
+			},
+		},
+		"RepositorySecretUpdateFailed": {
+			reason: "Repository Secret up to date fails",
+			args: args{
+				kube: test.NewMockClient(),
+				mg:   mockMG(fakeHashCorrect),
+				github: &fake.MockServiceSecrets{
+					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
+						return &github.Secret{}, &github.Response{}, errBoom
+					},
+				},
+			},
+			want: want{
+				mg:  managed.ExternalObservation{},
+				err: errors.Wrap(errBoom, "Error to verify if is up to date"),
 			},
 		},
 		"RepositorySecretToUpdate": {
@@ -141,7 +159,16 @@ func TestObserve(t *testing.T) {
 		"RepositorySecretUpToDate": {
 			reason: "Repository Secret is up to date",
 			args: args{
-				kube: test.NewMockClient(),
+				kube: &test.MockClient{
+					MockGet: test.NewMockGetFn(nil, func(obj client.Object) error {
+						s, _ := obj.(*corev1.Secret)
+						s.Data = map[string][]byte{
+							"test": superSecret,
+						}
+
+						return nil
+					}),
+				},
 				github: &fake.MockServiceSecrets{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{}, nil
@@ -217,32 +244,19 @@ func TestCreate(t *testing.T) {
 				err: errors.Wrap(errBoom, errCreateSecrets),
 			},
 		},
-		"CreationGetTimeFailed": {
-			reason: "Must return an error try get repository secret after creation",
-			args: args{
-				kube: test.NewMockClient(),
-				github: &fake.MockServiceSecrets{
-					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
-						return &github.Response{}, nil
-					},
-					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
-						return &github.Secret{}, &github.Response{}, errBoom
-					},
-					MockGetRepoPublicKey: func(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error) {
-						return &github.PublicKey{KeyID: gc.StringPtr("172354871263548712365487"), Key: gc.StringPtr("ZjRrM2szeQ==")}, &github.Response{}, nil
-					},
-				},
-				mg: mockMG(fakeHashCorrect),
-			},
-			want: want{
-				mg:  managed.ExternalCreation{},
-				err: errors.Wrap(errBoom, "Error to get secret from GitHub"),
-			},
-		},
 		"Success": {
 			reason: "Must not return an error if everything goes well",
 			args: args{
-				kube: test.NewMockClient(),
+				kube: &test.MockClient{
+					MockGet: test.NewMockGetFn(nil, func(obj client.Object) error {
+						s, _ := obj.(*corev1.Secret)
+						s.Data = map[string][]byte{
+							"test": superSecret,
+						}
+
+						return nil
+					}),
+				},
 				github: &fake.MockServiceSecrets{
 					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 						return &github.Response{}, nil
@@ -320,32 +334,19 @@ func TestUpdate(t *testing.T) {
 				err: errors.Wrap(errBoom, errUpdateSecrets),
 			},
 		},
-		"UpdateGetTimeFailed": {
-			reason: "Must return an error try get repository secret after update",
-			args: args{
-				kube: test.NewMockClient(),
-				github: &fake.MockServiceSecrets{
-					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
-						return &github.Response{}, nil
-					},
-					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
-						return &github.Secret{}, &github.Response{}, errBoom
-					},
-					MockGetRepoPublicKey: func(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error) {
-						return &github.PublicKey{KeyID: gc.StringPtr("172354871263548712365487"), Key: gc.StringPtr("ZjRrM2szeQ==")}, &github.Response{}, nil
-					},
-				},
-				mg: mockMG(fakeHashCorrect),
-			},
-			want: want{
-				mg:  managed.ExternalUpdate{},
-				err: errors.Wrap(errBoom, "Error to get secret from GitHub"),
-			},
-		},
 		"Success": {
 			reason: "Must not return an error if everything goes well",
 			args: args{
-				kube: test.NewMockClient(),
+				kube: &test.MockClient{
+					MockGet: test.NewMockGetFn(nil, func(obj client.Object) error {
+						s, _ := obj.(*corev1.Secret)
+						s.Data = map[string][]byte{
+							"test": superSecret,
+						}
+
+						return nil
+					}),
+				},
 				github: &fake.MockServiceSecrets{
 					MockCreateOrUpdateRepoSecret: func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 						return &github.Response{}, nil

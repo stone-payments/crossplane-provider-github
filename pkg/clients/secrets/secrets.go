@@ -24,6 +24,7 @@ import (
 	ghclient "github.com/crossplane-contrib/provider-github/pkg/clients"
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-github/v33/github"
 	"golang.org/x/crypto/nacl/box"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -46,42 +47,44 @@ func NewService(token string) *Service {
 }
 
 // CreateOrUpdateSec create or update repository secret in GitHub
-func CreateOrUpdateSec(ctx context.Context, cr *v1alpha1.SecretsParameters, name string, client client.Client, gh Service) (string, error) {
+func CreateOrUpdateSec(ctx context.Context, cr *v1alpha1.SecretsParameters, name string, client client.Client, gh Service) (string, string, error) {
 	encryptedSecret, hash, err := setupEncryptedSecret(ctx, client, cr, name, gh)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if _, err := gh.CreateOrUpdateRepoSecret(ctx, cr.Owner, cr.Repository, encryptedSecret); err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return hash, nil
+	sec, _, err := gh.GetRepoSecret(ctx, cr.Owner, cr.Repository, name)
+	if err != nil {
+		return "", "", err
+	}
+
+	return hash, sec.UpdatedAt.String(), nil
 }
 
 // IsUpToDate check if encrypted value is up to date
 func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.SecretsParameters, o *v1alpha1.SecretsObservation, name string, gh Service) (bool, error) {
-	var hash string
 	sec, _, err := gh.GetRepoSecret(ctx, p.Owner, p.Repository, name)
 	if err != nil {
 		return false, err
 	}
 
-	ref := xpv1.CommonCredentialSelectors{SecretRef: p.Value}
+	ref := xpv1.CommonCredentialSelectors{SecretRef: &p.Value}
 	val, err := resource.ExtractSecret(ctx, client, ref)
 	if err != nil {
 		return false, err
 	}
 
-	if hash = generateHash(string(val)); len(val) == 0 {
-		hash = generateHash("test")
+	hash := generateHash(string(val))
+	im := v1alpha1.SecretsObservation{
+		EncryptValue: hash,
+		LastUpdate:   sec.UpdatedAt.String(),
 	}
 
-	if hash != *o.EncryptValue {
-		return false, nil
-	}
-
-	if sec.UpdatedAt.String() != *o.LastUpdate {
+	if !cmp.Equal(im, *o) {
 		return false, nil
 	}
 
@@ -95,7 +98,7 @@ func setupEncryptedSecret(ctx context.Context, client client.Client, cr *v1alpha
 		return nil, "", err
 	}
 
-	ref := xpv1.CommonCredentialSelectors{SecretRef: cr.Value}
+	ref := xpv1.CommonCredentialSelectors{SecretRef: &cr.Value}
 	val, err := resource.ExtractSecret(ctx, client, ref)
 	if err != nil {
 		return nil, "", err
