@@ -1,4 +1,4 @@
-package secrets
+package repositorysecrets
 
 /*
 Copyright 2021 The Crossplane Authors.
@@ -30,34 +30,34 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 
-	"github.com/crossplane-contrib/provider-github/apis/secrets/v1alpha1"
+	"github.com/crossplane-contrib/provider-github/apis/repositorysecrets/v1alpha1"
 	ghclient "github.com/crossplane-contrib/provider-github/pkg/clients"
-	"github.com/crossplane-contrib/provider-github/pkg/clients/secrets"
+	"github.com/crossplane-contrib/provider-github/pkg/clients/repositorysecrets"
 )
 
 const (
-	errUnexpectedObject = "The managed resource is not a Secrets resource"
-	errCreateSecrets    = "cannot create Secrets"
-	errUpdateSecrets    = "cannot update Secrets"
-	errDeleteSecrets    = "cannot delete Secrets"
+	errUnexpectedObject        = "The managed resource is not a Repository Secrets resource"
+	errCreateRepositorySecrets = "cannot create Repository Secrets"
+	errUpdateRepositorySecrets = "cannot update Repository Secrets"
+	errDeleteRepositorySecrets = "cannot delete Repository Secrets"
 )
 
-// SetupSecrets adds a controller that reconciles secrets.
-func SetupSecrets(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
-	name := managed.ControllerName(v1alpha1.SecretsGroupKind)
+// SetupRepositorysecrets adds a controller that reconciles secrets.
+func SetupRepositorysecrets(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
+	name := managed.ControllerName(v1alpha1.RepositorysecretsGroupKind)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(controller.Options{
 			RateLimiter: ratelimiter.NewDefaultManagedRateLimiter(rl),
 		}).
-		For(&v1alpha1.Ghsecrets{}).
+		For(&v1alpha1.Repositorysecrets{}).
 		Complete(managed.NewReconciler(mgr,
-			resource.ManagedKind(v1alpha1.SecretsGroupVersionKind),
+			resource.ManagedKind(v1alpha1.RepositorysecretsGroupVersionKind),
 			managed.WithExternalConnecter(
 				&connector{
 					client:      mgr.GetClient(),
-					newClientFn: secrets.NewService,
+					newClientFn: repositorysecrets.NewService,
 				},
 			),
 			managed.WithConnectionPublishers(),
@@ -72,11 +72,11 @@ func SetupSecrets(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) 
 
 type connector struct {
 	client      client.Client
-	newClientFn func(string) *secrets.Service
+	newClientFn func(string) *repositorysecrets.Service
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	cr, ok := mg.(*v1alpha1.Ghsecrets)
+	cr, ok := mg.(*v1alpha1.Repositorysecrets)
 	if !ok {
 		return nil, errors.New(errUnexpectedObject)
 	}
@@ -88,44 +88,41 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 }
 
 type external struct {
-	gh     secrets.Service
+	gh     repositorysecrets.Service
 	client client.Client
 }
 
 func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.ExternalObservation, error) {
-	var err error
-	upToDate := true
-	exist := false
-	cr, ok := mgd.(*v1alpha1.Ghsecrets)
+	cr, ok := mgd.(*v1alpha1.Repositorysecrets)
 	if !ok {
 		return managed.ExternalObservation{}, errors.New(errUnexpectedObject)
 	}
 
 	cr.Status.SetConditions(xpv1.Available())
-	if len(cr.Status.AtProvider.EncryptValue) > 0 {
-		exist = true
-		upToDate, err = secrets.IsUpToDate(ctx, e.client, &cr.Spec.ForProvider, &cr.Status.AtProvider, meta.GetExternalName(cr), e.gh)
-		if err != nil {
-			return managed.ExternalObservation{}, errors.Wrap(err, "Error to verify if is up to date")
-		}
+	if len(cr.Status.AtProvider.EncryptValue) == 0 {
+		return managed.ExternalObservation{}, nil
+	}
+
+	upToDate, err := repositorysecrets.IsUpToDate(ctx, e.client, &cr.Spec.ForProvider, &cr.Status.AtProvider, meta.GetExternalName(cr), e.gh)
+	if err != nil {
+		return managed.ExternalObservation{}, errors.Wrap(err, "Error to verify if is up to date")
 	}
 
 	return managed.ExternalObservation{
-		ResourceUpToDate:  upToDate,
-		ResourceExists:    exist,
-		ConnectionDetails: managed.ConnectionDetails{},
+		ResourceUpToDate: upToDate,
+		ResourceExists:   true,
 	}, nil
 }
 
 func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.ExternalCreation, error) {
-	cr, ok := mgd.(*v1alpha1.Ghsecrets)
+	cr, ok := mgd.(*v1alpha1.Repositorysecrets)
 	if !ok {
 		return managed.ExternalCreation{}, errors.New(errUnexpectedObject)
 	}
 
-	hash, time, err := secrets.CreateOrUpdateSec(ctx, &cr.Spec.ForProvider, meta.GetExternalName(cr), e.client, e.gh)
+	hash, time, err := repositorysecrets.CreateOrUpdateSec(ctx, &cr.Spec.ForProvider, meta.GetExternalName(cr), e.client, e.gh)
 	if err != nil {
-		return managed.ExternalCreation{}, errors.Wrap(err, errCreateSecrets)
+		return managed.ExternalCreation{}, errors.Wrap(err, errCreateRepositorySecrets)
 	}
 
 	cr.Status.AtProvider.LastUpdate = time
@@ -135,14 +132,14 @@ func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.Ex
 }
 
 func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.ExternalUpdate, error) {
-	cr, ok := mgd.(*v1alpha1.Ghsecrets)
+	cr, ok := mgd.(*v1alpha1.Repositorysecrets)
 	if !ok {
 		return managed.ExternalUpdate{}, errors.New(errUnexpectedObject)
 	}
 
-	hash, time, err := secrets.CreateOrUpdateSec(ctx, &cr.Spec.ForProvider, meta.GetExternalName(cr), e.client, e.gh)
+	hash, time, err := repositorysecrets.CreateOrUpdateSec(ctx, &cr.Spec.ForProvider, meta.GetExternalName(cr), e.client, e.gh)
 	if err != nil {
-		return managed.ExternalUpdate{}, errors.Wrap(err, errUpdateSecrets)
+		return managed.ExternalUpdate{}, errors.Wrap(err, errUpdateRepositorySecrets)
 	}
 
 	cr.Status.AtProvider.LastUpdate = time
@@ -151,14 +148,14 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 }
 
 func (e *external) Delete(ctx context.Context, mgd resource.Managed) error {
-	cr, ok := mgd.(*v1alpha1.Ghsecrets)
+	cr, ok := mgd.(*v1alpha1.Repositorysecrets)
 	if !ok {
 		return errors.New(errUnexpectedObject)
 	}
 
 	_, err := e.gh.DeleteRepoSecret(ctx, cr.Spec.ForProvider.Owner, cr.Spec.ForProvider.Repository, meta.GetExternalName(cr))
 	if err != nil {
-		return errors.Wrap(err, errDeleteSecrets)
+		return errors.Wrap(err, errDeleteRepositorySecrets)
 	}
 
 	cr.Status.AtProvider.LastUpdate = ""

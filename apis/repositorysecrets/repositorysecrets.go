@@ -11,5 +11,5 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package secrets contains GitHub Action Secrets API versions
-package secrets
+// Package repositorysecrets contains GitHub Action Secrets API versions
+package repositorysecrets
