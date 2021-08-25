@@ -19,8 +19,8 @@ import (
 	"github.com/google/go-github/v33/github"
 )
 
-// MockServiceRepositorySecrets is a mock implementation of the Service
-type MockServiceRepositorySecrets struct {
+// MockServiceRepositorysecret is a mock implementation of the Service
+type MockServiceRepositorysecret struct {
 	MockGetRepoSecret            func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error)
 	MockGetRepoPublicKey         func(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error)
 	MockCreateOrUpdateRepoSecret func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error)
@@ -28,21 +28,21 @@ type MockServiceRepositorySecrets struct {
 }
 
 // GetRepoSecret is a fake GetRepoSecret SDK method
-func (m *MockServiceRepositorySecrets) GetRepoSecret(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
+func (m *MockServiceRepositorysecret) GetRepoSecret(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 	return m.MockGetRepoSecret(ctx, owner, repo, name)
 }
 
 // GetRepoPublicKey is a fake GetRepoPublicKey SDK method
-func (m *MockServiceRepositorySecrets) GetRepoPublicKey(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error) {
+func (m *MockServiceRepositorysecret) GetRepoPublicKey(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error) {
 	return m.MockGetRepoPublicKey(ctx, owner, repo)
 }
 
 // CreateOrUpdateRepoSecret is a fake CreateOrUpdateRepoSecret SDK method
-func (m *MockServiceRepositorySecrets) CreateOrUpdateRepoSecret(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
+func (m *MockServiceRepositorysecret) CreateOrUpdateRepoSecret(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 	return m.MockCreateOrUpdateRepoSecret(ctx, owner, repo, eSecret)
 }
 
 // DeleteRepoSecret is a fake DeleteRepoSecret SDK method
-func (m *MockServiceRepositorySecrets) DeleteRepoSecret(ctx context.Context, owner, repo, name string) (*github.Response, error) {
+func (m *MockServiceRepositorysecret) DeleteRepoSecret(ctx context.Context, owner, repo, name string) (*github.Response, error) {
 	return m.MockDeleteRepoSecret(ctx, owner, repo, name)
 }

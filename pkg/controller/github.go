@@ -22,10 +22,10 @@ import (
 
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
 
+	repositorysecret "github.com/crossplane-contrib/provider-github/pkg/controller/actions"
 	"github.com/crossplane-contrib/provider-github/pkg/controller/config"
 	"github.com/crossplane-contrib/provider-github/pkg/controller/organizations"
 	"github.com/crossplane-contrib/provider-github/pkg/controller/repositories"
-	"github.com/crossplane-contrib/provider-github/pkg/controller/repositorysecrets"
 )
 
 // Setup creates all GitHub controllers with the supplied logger and adds them
@@ -35,7 +35,7 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 		config.Setup,
 		organizations.SetupMembership,
 		repositories.SetupRepository,
-		repositorysecrets.SetupRepositorysecrets,
+		repositorysecret.SetupRepositorysecret,
 	} {
 		if err := setup(mgr, l, rl); err != nil {
 			return err

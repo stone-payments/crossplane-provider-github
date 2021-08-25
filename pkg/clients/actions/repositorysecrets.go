@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package repositorysecrets
+package repositorysecret
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/crossplane-contrib/provider-github/apis/repositorysecrets/v1alpha1"
+	"github.com/crossplane-contrib/provider-github/apis/actions/v1alpha1"
 	ghclient "github.com/crossplane-contrib/provider-github/pkg/clients"
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
@@ -47,7 +47,7 @@ func NewService(token string) *Service {
 }
 
 // CreateOrUpdateSec create or update repository secret in GitHub
-func CreateOrUpdateSec(ctx context.Context, cr *v1alpha1.RepositorysecretsParameters, name string, client client.Client, gh Service) (string, string, error) {
+func CreateOrUpdateSec(ctx context.Context, cr *v1alpha1.RepositorysecretParameters, name string, client client.Client, gh Service) (string, string, error) {
 	encryptedSecret, hash, err := setupEncryptedSecret(ctx, client, cr, name, gh)
 	if err != nil {
 		return "", "", err
@@ -66,7 +66,7 @@ func CreateOrUpdateSec(ctx context.Context, cr *v1alpha1.RepositorysecretsParame
 }
 
 // IsUpToDate check if encrypted value is up to date
-func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.RepositorysecretsParameters, o *v1alpha1.RepositorysecretsObservation, name string, gh Service) (bool, error) {
+func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.RepositorysecretParameters, o *v1alpha1.RepositorysecretObservation, name string, gh Service) (bool, error) {
 	sec, _, err := gh.GetRepoSecret(ctx, p.Owner, p.Repository, name)
 	if err != nil {
 		return false, err
@@ -79,7 +79,7 @@ func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.Repositor
 	}
 
 	hash := generateHash(string(val))
-	im := v1alpha1.RepositorysecretsObservation{
+	im := v1alpha1.RepositorysecretObservation{
 		EncryptValue: hash,
 		LastUpdate:   sec.UpdatedAt.String(),
 	}
@@ -92,7 +92,7 @@ func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.Repositor
 }
 
 // setupEncryptedSecret setup encrypted secret and generates hash
-func setupEncryptedSecret(ctx context.Context, client client.Client, cr *v1alpha1.RepositorysecretsParameters, name string, gh Service) (*github.EncryptedSecret, string, error) {
+func setupEncryptedSecret(ctx context.Context, client client.Client, cr *v1alpha1.RepositorysecretParameters, name string, gh Service) (*github.EncryptedSecret, string, error) {
 	publicKey, _, err := gh.GetRepoPublicKey(ctx, cr.Owner, cr.Repository)
 	if err != nil {
 		return nil, "", err
