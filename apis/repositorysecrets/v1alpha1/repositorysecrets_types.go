@@ -22,8 +22,8 @@ import (
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 )
 
-// SecretsParameters defines the desired state of a GitHub Secrets.
-type SecretsParameters struct {
+// RepositorysecretsParameters defines the desired state of a GitHub Repository Secrets.
+type RepositorysecretsParameters struct {
 	// The name of the Repository owner.
 	Owner string `json:"owner"`
 	// The name of the repository.
@@ -32,49 +32,49 @@ type SecretsParameters struct {
 	Value xpv1.SecretKeySelector `json:"value"`
 }
 
-// SecretsObservation are the observable fields of a Secrets.
-type SecretsObservation struct {
-	// The encrypted value stored
+// RepositorysecretsObservation are the observable fields of a Repository Secrets.
+type RepositorysecretsObservation struct {
+	// The encrypted value stored in K8s Secret
 	// +optional
 	EncryptValue string `json:"encrypt_value,omitempty"`
-	// Last updated time in Repo Secret GitHub
+	// Last updated time in Repository Secret GitHub
 	// +optional
 	LastUpdate string `json:"last_update,omitempty"`
 }
 
-// A SecretsSpec defines the desired state of a Secrets.
-type SecretsSpec struct {
+// A RepositorysecretsSpec defines the desired state of a Repository Secrets.
+type RepositorysecretsSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       SecretsParameters `json:"forProvider"`
+	ForProvider       RepositorysecretsParameters `json:"forProvider"`
 }
 
-// A SecretsStatus represents the observed state of a Secrets.
-type SecretsStatus struct {
+// A RepositorysecretsStatus represents the observed state of a Repository Secrets.
+type RepositorysecretsStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
-	AtProvider          SecretsObservation `json:"atProvider,omitempty"`
+	AtProvider          RepositorysecretsObservation `json:"atProvider,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// A Ghsecrets is a managed resource that represents a GitHub Secrets
+// A Repositorysecrets is a managed resource that represents a GitHub Secrets
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,github}
-type Ghsecrets struct {
+type Repositorysecrets struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SecretsSpec   `json:"spec"`
-	Status SecretsStatus `json:"status,omitempty"`
+	Spec   RepositorysecretsSpec   `json:"spec"`
+	Status RepositorysecretsStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// GhsecretsList contains a list of Secrets
-type GhsecretsList struct {
+// RepositorysecretsList contains a list of Secrets
+type RepositorysecretsList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Ghsecrets `json:"items"`
+	Items           []Repositorysecrets `json:"items"`
 }

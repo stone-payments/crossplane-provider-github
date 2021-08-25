@@ -19,8 +19,8 @@ import (
 	"github.com/google/go-github/v33/github"
 )
 
-// MockServiceSecrets is a mock implementation of the Service
-type MockServiceSecrets struct {
+// MockServiceRepositorySecrets is a mock implementation of the Service
+type MockServiceRepositorySecrets struct {
 	MockGetRepoSecret            func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error)
 	MockGetRepoPublicKey         func(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error)
 	MockCreateOrUpdateRepoSecret func(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error)
@@ -28,21 +28,21 @@ type MockServiceSecrets struct {
 }
 
 // GetRepoSecret is a fake GetRepoSecret SDK method
-func (m *MockServiceSecrets) GetRepoSecret(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
+func (m *MockServiceRepositorySecrets) GetRepoSecret(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
 	return m.MockGetRepoSecret(ctx, owner, repo, name)
 }
 
 // GetRepoPublicKey is a fake GetRepoPublicKey SDK method
-func (m *MockServiceSecrets) GetRepoPublicKey(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error) {
+func (m *MockServiceRepositorySecrets) GetRepoPublicKey(ctx context.Context, owner, repo string) (*github.PublicKey, *github.Response, error) {
 	return m.MockGetRepoPublicKey(ctx, owner, repo)
 }
 
 // CreateOrUpdateRepoSecret is a fake CreateOrUpdateRepoSecret SDK method
-func (m *MockServiceSecrets) CreateOrUpdateRepoSecret(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
+func (m *MockServiceRepositorySecrets) CreateOrUpdateRepoSecret(ctx context.Context, owner, repo string, eSecret *github.EncryptedSecret) (*github.Response, error) {
 	return m.MockCreateOrUpdateRepoSecret(ctx, owner, repo, eSecret)
 }
 
 // DeleteRepoSecret is a fake DeleteRepoSecret SDK method
-func (m *MockServiceSecrets) DeleteRepoSecret(ctx context.Context, owner, repo, name string) (*github.Response, error) {
+func (m *MockServiceRepositorySecrets) DeleteRepoSecret(ctx context.Context, owner, repo, name string) (*github.Response, error) {
 	return m.MockDeleteRepoSecret(ctx, owner, repo, name)
 }

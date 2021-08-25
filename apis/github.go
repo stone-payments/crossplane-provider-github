@@ -22,7 +22,7 @@ import (
 
 	organizationsv1alpha1 "github.com/crossplane-contrib/provider-github/apis/organizations/v1alpha1"
 	repositoriesv1alpha1 "github.com/crossplane-contrib/provider-github/apis/repositories/v1alpha1"
-	secretsv1alpha1 "github.com/crossplane-contrib/provider-github/apis/secrets/v1alpha1"
+	repositorysecretsv1alpha1 "github.com/crossplane-contrib/provider-github/apis/repositorysecrets/v1alpha1"
 	v1beta1 "github.com/crossplane-contrib/provider-github/apis/v1beta1"
 )
 
@@ -32,7 +32,7 @@ func init() {
 		v1beta1.SchemeBuilder.AddToScheme,
 		organizationsv1alpha1.SchemeBuilder.AddToScheme,
 		repositoriesv1alpha1.SchemeBuilder.AddToScheme,
-		secretsv1alpha1.SchemeBuilder.AddToScheme,
+		repositorysecretsv1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 
