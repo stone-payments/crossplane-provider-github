@@ -98,10 +98,15 @@ func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.E
 		return managed.ExternalObservation{}, errors.New(errUnexpectedObject)
 	}
 
-	cr.Status.SetConditions(xpv1.Available())
-	if len(cr.Status.AtProvider.EncryptValue) == 0 {
-		return managed.ExternalObservation{}, nil
+	_, res, err := e.gh.GetRepoSecret(ctx, cr.Spec.ForProvider.Owner, cr.Spec.ForProvider.Repository, meta.GetExternalName(cr))
+	if err != nil {
+		if res.StatusCode == 404 {
+			return managed.ExternalObservation{}, nil
+		}
+		return managed.ExternalObservation{}, errors.Wrap(err, "cannot get repository secret from GitHub")
 	}
+
+	cr.Status.SetConditions(xpv1.Available())
 
 	upToDate, err := repositorysecret.IsUpToDate(ctx, e.client, &cr.Spec.ForProvider, &cr.Status.AtProvider, meta.GetExternalName(cr), e.gh)
 	if err != nil {
