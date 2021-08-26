@@ -42,18 +42,18 @@ const (
 	errDeleteRepositorySecrets = "cannot delete Repository Secrets"
 )
 
-// SetupRepositorysecret adds a controller that reconciles secrets.
-func SetupRepositorysecret(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
-	name := managed.ControllerName(v1alpha1.RepositorysecretGroupKind)
+// SetupRepositorySecret adds a controller that reconciles secrets.
+func SetupRepositorySecret(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
+	name := managed.ControllerName(v1alpha1.RepositorySecretGroupKind)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(controller.Options{
 			RateLimiter: ratelimiter.NewDefaultManagedRateLimiter(rl),
 		}).
-		For(&v1alpha1.Repositorysecret{}).
+		For(&v1alpha1.RepositorySecret{}).
 		Complete(managed.NewReconciler(mgr,
-			resource.ManagedKind(v1alpha1.RepositorysecretGroupVersionKind),
+			resource.ManagedKind(v1alpha1.RepositorySecretGroupVersionKind),
 			managed.WithExternalConnecter(
 				&connector{
 					client:      mgr.GetClient(),
@@ -76,7 +76,7 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	cr, ok := mg.(*v1alpha1.Repositorysecret)
+	cr, ok := mg.(*v1alpha1.RepositorySecret)
 	if !ok {
 		return nil, errors.New(errUnexpectedObject)
 	}
@@ -93,7 +93,7 @@ type external struct {
 }
 
 func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.ExternalObservation, error) {
-	cr, ok := mgd.(*v1alpha1.Repositorysecret)
+	cr, ok := mgd.(*v1alpha1.RepositorySecret)
 	if !ok {
 		return managed.ExternalObservation{}, errors.New(errUnexpectedObject)
 	}
@@ -115,7 +115,7 @@ func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.E
 }
 
 func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.ExternalCreation, error) {
-	cr, ok := mgd.(*v1alpha1.Repositorysecret)
+	cr, ok := mgd.(*v1alpha1.RepositorySecret)
 	if !ok {
 		return managed.ExternalCreation{}, errors.New(errUnexpectedObject)
 	}
@@ -132,7 +132,7 @@ func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.Ex
 }
 
 func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.ExternalUpdate, error) {
-	cr, ok := mgd.(*v1alpha1.Repositorysecret)
+	cr, ok := mgd.(*v1alpha1.RepositorySecret)
 	if !ok {
 		return managed.ExternalUpdate{}, errors.New(errUnexpectedObject)
 	}
@@ -148,7 +148,7 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 }
 
 func (e *external) Delete(ctx context.Context, mgd resource.Managed) error {
-	cr, ok := mgd.(*v1alpha1.Repositorysecret)
+	cr, ok := mgd.(*v1alpha1.RepositorySecret)
 	if !ok {
 		return errors.New(errUnexpectedObject)
 	}
@@ -160,6 +160,5 @@ func (e *external) Delete(ctx context.Context, mgd resource.Managed) error {
 
 	cr.Status.AtProvider.LastUpdate = ""
 	cr.Status.AtProvider.EncryptValue = ""
-	cr.SetConditions(xpv1.Deleting())
 	return nil
 }
