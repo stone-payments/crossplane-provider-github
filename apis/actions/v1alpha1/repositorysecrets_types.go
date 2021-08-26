@@ -36,10 +36,10 @@ type RepositorySecretParameters struct {
 type RepositorySecretObservation struct {
 	// The encrypted value stored in K8s Secret
 	// +optional
-	EncryptValue string `json:"encrypt_value,omitempty"`
+	EncryptValue string `json:"encryptValue,omitempty"`
 	// Last updated time in Repository Secret GitHub
 	// +optional
-	LastUpdate string `json:"last_update,omitempty"`
+	LastUpdate string `json:"lastUpdate,omitempty"`
 }
 
 // A RepositorySecretSpec defines the desired state of a Repository Secrets.
