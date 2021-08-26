@@ -19,58 +19,58 @@ package v1alpha1
 
 import xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 
-// GetCondition of this Repositorysecret.
-func (mg *Repositorysecret) GetCondition(ct xpv1.ConditionType) xpv1.Condition {
+// GetCondition of this RepositorySecret.
+func (mg *RepositorySecret) GetCondition(ct xpv1.ConditionType) xpv1.Condition {
 	return mg.Status.GetCondition(ct)
 }
 
-// GetDeletionPolicy of this Repositorysecret.
-func (mg *Repositorysecret) GetDeletionPolicy() xpv1.DeletionPolicy {
+// GetDeletionPolicy of this RepositorySecret.
+func (mg *RepositorySecret) GetDeletionPolicy() xpv1.DeletionPolicy {
 	return mg.Spec.DeletionPolicy
 }
 
-// GetProviderConfigReference of this Repositorysecret.
-func (mg *Repositorysecret) GetProviderConfigReference() *xpv1.Reference {
+// GetProviderConfigReference of this RepositorySecret.
+func (mg *RepositorySecret) GetProviderConfigReference() *xpv1.Reference {
 	return mg.Spec.ProviderConfigReference
 }
 
 /*
-GetProviderReference of this Repositorysecret.
+GetProviderReference of this RepositorySecret.
 Deprecated: Use GetProviderConfigReference.
 */
-func (mg *Repositorysecret) GetProviderReference() *xpv1.Reference {
+func (mg *RepositorySecret) GetProviderReference() *xpv1.Reference {
 	return mg.Spec.ProviderReference
 }
 
-// GetWriteConnectionSecretToReference of this Repositorysecret.
-func (mg *Repositorysecret) GetWriteConnectionSecretToReference() *xpv1.SecretReference {
+// GetWriteConnectionSecretToReference of this RepositorySecret.
+func (mg *RepositorySecret) GetWriteConnectionSecretToReference() *xpv1.SecretReference {
 	return mg.Spec.WriteConnectionSecretToReference
 }
 
-// SetConditions of this Repositorysecret.
-func (mg *Repositorysecret) SetConditions(c ...xpv1.Condition) {
+// SetConditions of this RepositorySecret.
+func (mg *RepositorySecret) SetConditions(c ...xpv1.Condition) {
 	mg.Status.SetConditions(c...)
 }
 
-// SetDeletionPolicy of this Repositorysecret.
-func (mg *Repositorysecret) SetDeletionPolicy(r xpv1.DeletionPolicy) {
+// SetDeletionPolicy of this RepositorySecret.
+func (mg *RepositorySecret) SetDeletionPolicy(r xpv1.DeletionPolicy) {
 	mg.Spec.DeletionPolicy = r
 }
 
-// SetProviderConfigReference of this Repositorysecret.
-func (mg *Repositorysecret) SetProviderConfigReference(r *xpv1.Reference) {
+// SetProviderConfigReference of this RepositorySecret.
+func (mg *RepositorySecret) SetProviderConfigReference(r *xpv1.Reference) {
 	mg.Spec.ProviderConfigReference = r
 }
 
 /*
-SetProviderReference of this Repositorysecret.
+SetProviderReference of this RepositorySecret.
 Deprecated: Use SetProviderConfigReference.
 */
-func (mg *Repositorysecret) SetProviderReference(r *xpv1.Reference) {
+func (mg *RepositorySecret) SetProviderReference(r *xpv1.Reference) {
 	mg.Spec.ProviderReference = r
 }
 
-// SetWriteConnectionSecretToReference of this Repositorysecret.
-func (mg *Repositorysecret) SetWriteConnectionSecretToReference(r *xpv1.SecretReference) {
+// SetWriteConnectionSecretToReference of this RepositorySecret.
+func (mg *RepositorySecret) SetWriteConnectionSecretToReference(r *xpv1.SecretReference) {
 	mg.Spec.WriteConnectionSecretToReference = r
 }

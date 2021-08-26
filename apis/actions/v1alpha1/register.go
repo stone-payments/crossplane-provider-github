@@ -37,14 +37,14 @@ var (
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 )
 
-// Repositorysecret type metadata.
+// RepositorySecret type metadata.
 var (
-	RepositorysecretKind             = reflect.TypeOf(Repositorysecret{}).Name()
-	RepositorysecretGroupKind        = schema.GroupKind{Group: Group, Kind: RepositorysecretKind}.String()
-	RepositorysecretKindAPIVersion   = RepositorysecretKind + "." + SchemeGroupVersion.String()
-	RepositorysecretGroupVersionKind = SchemeGroupVersion.WithKind(RepositorysecretKind)
+	RepositorySecretKind             = reflect.TypeOf(RepositorySecret{}).Name()
+	RepositorySecretGroupKind        = schema.GroupKind{Group: Group, Kind: RepositorySecretKind}.String()
+	RepositorySecretKindAPIVersion   = RepositorySecretKind + "." + SchemeGroupVersion.String()
+	RepositorySecretGroupVersionKind = SchemeGroupVersion.WithKind(RepositorySecretKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&Repositorysecret{}, &RepositorysecretList{})
+	SchemeBuilder.Register(&RepositorySecret{}, &RepositorySecretList{})
 }

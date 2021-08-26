@@ -22,8 +22,8 @@ import (
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 )
 
-// RepositorysecretParameters defines the desired state of a GitHub Repository Secrets.
-type RepositorysecretParameters struct {
+// RepositorySecretParameters defines the desired state of a GitHub Repository Secrets.
+type RepositorySecretParameters struct {
 	// The name of the Repository owner.
 	Owner string `json:"owner"`
 	// The name of the repository.
@@ -32,8 +32,8 @@ type RepositorysecretParameters struct {
 	Value xpv1.SecretKeySelector `json:"value"`
 }
 
-// RepositorysecretObservation are the observable fields of a Repository Secrets.
-type RepositorysecretObservation struct {
+// RepositorySecretObservation are the observable fields of a Repository Secrets.
+type RepositorySecretObservation struct {
 	// The encrypted value stored in K8s Secret
 	// +optional
 	EncryptValue string `json:"encrypt_value,omitempty"`
@@ -42,39 +42,39 @@ type RepositorysecretObservation struct {
 	LastUpdate string `json:"last_update,omitempty"`
 }
 
-// A RepositorysecretSpec defines the desired state of a Repository Secrets.
-type RepositorysecretSpec struct {
+// A RepositorySecretSpec defines the desired state of a Repository Secrets.
+type RepositorySecretSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       RepositorysecretParameters `json:"forProvider"`
+	ForProvider       RepositorySecretParameters `json:"forProvider"`
 }
 
-// A RepositorysecretStatus represents the observed state of a Repository Secrets.
-type RepositorysecretStatus struct {
+// A RepositorySecretStatus represents the observed state of a Repository Secrets.
+type RepositorySecretStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
-	AtProvider          RepositorysecretObservation `json:"atProvider,omitempty"`
+	AtProvider          RepositorySecretObservation `json:"atProvider,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// A Repositorysecret is a managed resource that represents a GitHub Secrets
+// A RepositorySecret is a managed resource that represents a GitHub Secrets
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,github}
-type Repositorysecret struct {
+type RepositorySecret struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RepositorysecretSpec   `json:"spec"`
-	Status RepositorysecretStatus `json:"status,omitempty"`
+	Spec   RepositorySecretSpec   `json:"spec"`
+	Status RepositorySecretStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// RepositorysecretList contains a list of Secrets
-type RepositorysecretList struct {
+// RepositorySecretList contains a list of Secrets
+type RepositorySecretList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Repositorysecret `json:"items"`
+	Items           []RepositorySecret `json:"items"`
 }

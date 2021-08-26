@@ -47,7 +47,7 @@ func NewService(token string) *Service {
 }
 
 // CreateOrUpdateSec create or update repository secret in GitHub
-func CreateOrUpdateSec(ctx context.Context, cr *v1alpha1.RepositorysecretParameters, name string, client client.Client, gh Service) (string, string, error) {
+func CreateOrUpdateSec(ctx context.Context, cr *v1alpha1.RepositorySecretParameters, name string, client client.Client, gh Service) (string, string, error) {
 	encryptedSecret, hash, err := setupEncryptedSecret(ctx, client, cr, name, gh)
 	if err != nil {
 		return "", "", err
@@ -66,7 +66,7 @@ func CreateOrUpdateSec(ctx context.Context, cr *v1alpha1.RepositorysecretParamet
 }
 
 // IsUpToDate check if encrypted value is up to date
-func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.RepositorysecretParameters, o *v1alpha1.RepositorysecretObservation, name string, gh Service) (bool, error) {
+func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.RepositorySecretParameters, o *v1alpha1.RepositorySecretObservation, name string, gh Service) (bool, error) {
 	sec, _, err := gh.GetRepoSecret(ctx, p.Owner, p.Repository, name)
 	if err != nil {
 		return false, err
@@ -79,7 +79,7 @@ func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.Repositor
 	}
 
 	hash := generateHash(string(val))
-	im := v1alpha1.RepositorysecretObservation{
+	im := v1alpha1.RepositorySecretObservation{
 		EncryptValue: hash,
 		LastUpdate:   sec.UpdatedAt.String(),
 	}
@@ -92,7 +92,7 @@ func IsUpToDate(ctx context.Context, client client.Client, p *v1alpha1.Repositor
 }
 
 // setupEncryptedSecret setup encrypted secret and generates hash
-func setupEncryptedSecret(ctx context.Context, client client.Client, cr *v1alpha1.RepositorysecretParameters, name string, gh Service) (*github.EncryptedSecret, string, error) {
+func setupEncryptedSecret(ctx context.Context, client client.Client, cr *v1alpha1.RepositorySecretParameters, name string, gh Service) (*github.EncryptedSecret, string, error) {
 	publicKey, _, err := gh.GetRepoPublicKey(ctx, cr.Owner, cr.Repository)
 	if err != nil {
 		return nil, "", err

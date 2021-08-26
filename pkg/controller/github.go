@@ -35,7 +35,7 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 		config.Setup,
 		organizations.SetupMembership,
 		repositories.SetupRepository,
-		repositorysecret.SetupRepositorysecret,
+		repositorysecret.SetupRepositorySecret,
 	} {
 		if err := setup(mgr, l, rl); err != nil {
 			return err
