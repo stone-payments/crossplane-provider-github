@@ -15,6 +15,7 @@ package repositorysecret
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -105,43 +106,70 @@ func TestObserve(t *testing.T) {
 				err: errors.New(errUnexpectedObject),
 			},
 		},
-		"RepositorySecretToCreation": {
-			reason: "Repository Secret needs to be created",
-			args: args{
-				kube: test.NewMockClient(),
-				mg:   &v1alpha1.RepositorySecret{},
-			},
-			want: want{
-				mg: managed.ExternalObservation{
-					ResourceExists:   false,
-					ResourceUpToDate: false,
-				},
-				err: nil,
-			},
-		},
-		"RepositorySecretUpdateFailed": {
-			reason: "Repository Secret up to date fails",
+		"GetRepositorySecretFailed": {
+			reason: "Get repository secret fails",
 			args: args{
 				kube: test.NewMockClient(),
 				mg:   mockMG(fakeHashCorrect),
 				github: &fake.MockServiceRepositorySecret{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
-						return &github.Secret{}, &github.Response{}, errBoom
+						return &github.Secret{}, &github.Response{Response: &http.Response{StatusCode: 401}}, errBoom
 					},
 				},
 			},
 			want: want{
 				mg:  managed.ExternalObservation{},
-				err: errors.Wrap(errBoom, "Error to verify if is up to date"),
+				err: errors.Wrap(errBoom, "cannot get repository secret from GitHub"),
+			},
+		},
+		"RepositorySecretToCreation": {
+			reason: "Repository secret needs to be created",
+			args: args{
+				kube: test.NewMockClient(),
+				mg:   &v1alpha1.RepositorySecret{},
+				github: &fake.MockServiceRepositorySecret{
+					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
+						return &github.Secret{}, &github.Response{Response: &http.Response{StatusCode: 404}}, errBoom
+					},
+				},
+			},
+			want: want{
+				mg:  managed.ExternalObservation{},
+				err: nil,
+			},
+		},
+		"RepositorySecretUpdateFailed": {
+			reason: "Repository secret up to date fails",
+			args: args{
+				kube: &test.MockClient{
+					MockGet: test.NewMockGetFn(nil, func(obj client.Object) error {
+						s, _ := obj.(*corev1.Secret)
+						s.Data = map[string][]byte{
+							"test": superSecret,
+						}
+
+						return errBoom
+					}),
+				},
+				mg: mockMG(fakeHashCorrect),
+				github: &fake.MockServiceRepositorySecret{
+					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
+						return &github.Secret{}, &github.Response{Response: &http.Response{StatusCode: 200}}, nil
+					},
+				},
+			},
+			want: want{
+				mg:  managed.ExternalObservation{},
+				err: errors.Wrap(errBoom, "Error to verify if is up to date: cannot get credentials secret"),
 			},
 		},
 		"RepositorySecretToUpdate": {
-			reason: "Repository Secret needs to be updated",
+			reason: "Repository secret needs to be updated",
 			args: args{
 				kube: test.NewMockClient(),
 				github: &fake.MockServiceRepositorySecret{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
-						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{}, nil
+						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{Response: &http.Response{StatusCode: 200}}, nil
 					},
 				},
 				mg: mockMG(fakeHashFalse),
@@ -169,7 +197,7 @@ func TestObserve(t *testing.T) {
 				},
 				github: &fake.MockServiceRepositorySecret{
 					MockGetRepoSecret: func(ctx context.Context, owner, repo, name string) (*github.Secret, *github.Response, error) {
-						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{}, nil
+						return &github.Secret{Name: "TESTSECRET", CreatedAt: github.Timestamp{Time: fakeUpdateTime}, UpdatedAt: github.Timestamp{Time: fakeUpdateTime}}, &github.Response{Response: &http.Response{StatusCode: 200}}, nil
 					},
 				},
 				mg: mockMG(fakeHashCorrect),
