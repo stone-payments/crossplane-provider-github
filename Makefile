@@ -137,3 +137,7 @@ crossplane.help:
 help-special: crossplane.help
 
 .PHONY: crossplane.help help-special
+
+coverage:
+	go test -v -coverprofile=cover.out ./...
+	go tool cover -html=cover.out
