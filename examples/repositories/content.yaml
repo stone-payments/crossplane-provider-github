@@ -1,0 +1,17 @@
+apiVersion: repositories.github.crossplane.io/v1alpha1
+kind: Content
+metadata:
+  name: example
+spec:
+  deletionPolicy: Orphan
+  reconcile: Disabled
+  forProvider:
+    owner: crossplane
+    repo: provider-template
+    branch: master
+    path: LICENSE.md
+    message: Update License
+    content: |
+      foo bar
+  providerConfigRef:
+    name: github-provider-config
