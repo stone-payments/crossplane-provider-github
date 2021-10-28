@@ -84,15 +84,38 @@ spec:
                   path:
                     description: The file path.
                     type: string
-                  repo:
-                    description: 'The name of the Repository. TODO: Use Selector pattern'
+                  repository:
+                    description: The name of the Repository.
                     type: string
+                  repositoryRef:
+                    description: RepositoryRef references a Repository and retrieves
+                      its name.
+                    properties:
+                      name:
+                        description: Name of the referenced object.
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  repositorySelector:
+                    description: RepositorySelector selects a reference to a Repository.
+                    properties:
+                      matchControllerRef:
+                        description: MatchControllerRef ensures an object with the
+                          same controller reference as the selecting object is selected.
+                        type: boolean
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: MatchLabels ensures an object with matching labels
+                          is selected.
+                        type: object
+                    type: object
                 required:
                 - content
                 - message
                 - owner
                 - path
-                - repo
                 type: object
               providerConfigRef:
                 default:

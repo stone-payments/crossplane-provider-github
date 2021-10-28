@@ -52,6 +52,10 @@ func newContent(opts ...contentOption) *v1alpha1.Content {
 	return r
 }
 
+func withRepository(repository string) contentOption {
+	return func(c *v1alpha1.Content) { c.Spec.ForProvider.Repository = &repository }
+}
+
 func withReconcile(reconcile string) contentOption {
 	return func(c *v1alpha1.Content) { c.Spec.Reconcile = &reconcile }
 }
@@ -96,6 +100,7 @@ func TestObserve(t *testing.T) {
 			args: args{
 				mg: newContent(
 					withBranch("main"),
+					withRepository(dummyText),
 				),
 				github: &fake.MockService{
 					MockGetContents: func(tx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error) {
@@ -118,7 +123,9 @@ func TestObserve(t *testing.T) {
 		"InternalError": {
 			reason: "Should return an error if GET content returns a status code different than 404",
 			args: args{
-				mg: newContent(),
+				mg: newContent(
+					withRepository(dummyText),
+				),
 				github: &fake.MockService{
 					MockGetContents: func(tx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error) {
 						return &github.RepositoryContent{},
@@ -143,6 +150,7 @@ func TestObserve(t *testing.T) {
 				mg: newContent(
 					withReconcile("Disabled"),
 					withConditions(xpv1.Available()),
+					withRepository(dummyText),
 				),
 				github: &fake.MockService{
 					MockGetContents: func(tx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error) {
@@ -170,6 +178,7 @@ func TestObserve(t *testing.T) {
 			args: args{
 				mg: newContent(
 					withReconcile("Disabled"),
+					withRepository(dummyText),
 				),
 				github: &fake.MockService{
 					MockGetContents: func(tx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error) {
@@ -246,7 +255,9 @@ func TestCreate(t *testing.T) {
 							errBoom
 					},
 				},
-				mg: newContent(),
+				mg: newContent(
+					withRepository(dummyText),
+				),
 			},
 			want: want{
 				eo:  managed.ExternalCreation{},
@@ -263,7 +274,9 @@ func TestCreate(t *testing.T) {
 							nil
 					},
 				},
-				mg: newContent(),
+				mg: newContent(
+					withRepository(dummyText),
+				),
 			},
 			want: want{
 				eo:  managed.ExternalCreation{},

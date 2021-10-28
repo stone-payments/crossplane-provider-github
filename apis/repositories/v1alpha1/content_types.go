@@ -29,8 +29,19 @@ type ContentParameters struct {
 	Owner string `json:"owner"`
 
 	// The name of the Repository.
-	// TODO: Use Selector pattern
-	Repo string `json:"repo"`
+	//
+	// +optional
+	Repository *string `json:"repository,omitempty"`
+
+	// RepositoryRef references a Repository and retrieves its name.
+	//
+	// +optional
+	RepositoryRef *xpv1.Reference `json:"repositoryRef,omitempty"`
+
+	// RepositorySelector selects a reference to a Repository.
+	//
+	// +optional
+	RepositorySelector *xpv1.Selector `json:"repositorySelector,omitempty"`
 
 	// The file path.
 	Path string `json:"path"`
