@@ -7,4 +7,4 @@ spec:
     owner: crossplane
     org: crossplane
   providerConfigRef:
-    name: default
+    name: github-provider-config

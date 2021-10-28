@@ -7,10 +7,11 @@ spec:
   reconcile: Disabled
   forProvider:
     owner: crossplane
-    repo: provider-template
-    branch: master
-    path: LICENSE.md
-    message: Update License
+    repositoryRef:
+      name: sample
+    branch: main
+    path: README.md
+    message: Update README.md
     content: |
       foo bar
   providerConfigRef:

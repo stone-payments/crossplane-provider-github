@@ -42,6 +42,7 @@ const (
 	errGetContent       = "cannot get GitHub repository content"
 	errCreateContent    = "cannot create Content"
 	errUnexpectedObject = "The managed resource is not a Repository resource"
+	errRepositoryEmpty  = "the repository value cannot be empty"
 )
 
 // SetupContent adds a controller that reconciles Repositories.
@@ -112,9 +113,13 @@ func (e *contentExternal) Observe(ctx context.Context, mgd resource.Managed) (ma
 		}
 	}
 
+	if cr.Spec.ForProvider.Repository == nil {
+		return managed.ExternalObservation{}, errors.New(errRepositoryEmpty)
+	}
+
 	fc, _, res, err := e.gh.GetContents(ctx,
 		cr.Spec.ForProvider.Owner,
-		cr.Spec.ForProvider.Repo,
+		*cr.Spec.ForProvider.Repository,
 		cr.Spec.ForProvider.Path,
 		opts,
 	)
@@ -144,9 +149,13 @@ func (e *contentExternal) Create(ctx context.Context, mgd resource.Managed) (man
 		return managed.ExternalCreation{}, errors.New(errUnexpectedObject)
 	}
 
+	if cr.Spec.ForProvider.Repository == nil {
+		return managed.ExternalCreation{}, errors.New(errRepositoryEmpty)
+	}
+
 	_, _, err := e.gh.CreateFile(ctx,
 		cr.Spec.ForProvider.Owner,
-		cr.Spec.ForProvider.Repo,
+		*cr.Spec.ForProvider.Repository,
 		cr.Spec.ForProvider.Path,
 		&github.RepositoryContentFileOptions{
 			Message: &cr.Spec.ForProvider.Message,
