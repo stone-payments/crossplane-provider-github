@@ -3,8 +3,6 @@ kind: Content
 metadata:
   name: example
 spec:
-  deletionPolicy: Orphan
-  reconcile: Disabled
   forProvider:
     owner: crossplane
     repositoryRef:

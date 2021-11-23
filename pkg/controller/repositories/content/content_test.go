@@ -323,6 +323,54 @@ func TestUpdate(t *testing.T) {
 				err: errors.New(errUnexpectedObject),
 			},
 		},
+		"UpdateSuccessful": {
+			reason: "Must not return an error if everything succeeds",
+			args: args{
+				mg: newContent(
+					withBranch("main"),
+					withRepository(dummyText),
+				),
+				github: &fake.MockService{
+					MockUpdateFile: func(ctx context.Context, owner string, repo string, path string, opts *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error) {
+						return nil,
+							&github.Response{
+								Response: &http.Response{
+									StatusCode: ok,
+								},
+							},
+							nil
+					},
+				},
+			},
+			want: want{
+				eo:  managed.ExternalUpdate{},
+				err: nil,
+			},
+		},
+		"UpdateFailed": {
+			reason: "Must return an error if the update request fails",
+			args: args{
+				mg: newContent(
+					withBranch("main"),
+					withRepository(dummyText),
+				),
+				github: &fake.MockService{
+					MockUpdateFile: func(ctx context.Context, owner string, repo string, path string, opts *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error) {
+						return nil,
+							&github.Response{
+								Response: &http.Response{
+									StatusCode: internalError,
+								},
+							},
+							errBoom
+					},
+				},
+			},
+			want: want{
+				eo:  managed.ExternalUpdate{},
+				err: errors.Wrap(errBoom, errUpdateContent),
+			},
+		},
 	}
 
 	for name, tc := range cases {
@@ -358,6 +406,52 @@ func TestDelete(t *testing.T) {
 			},
 			want: want{
 				err: errors.New(errUnexpectedObject),
+			},
+		},
+		"DeleteSuccessful": {
+			reason: "Must not return an error if everything succeeds",
+			args: args{
+				mg: newContent(
+					withBranch("main"),
+					withRepository(dummyText),
+				),
+				github: &fake.MockService{
+					MockDeleteFile: func(ctx context.Context, owner string, repo string, path string, opts *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error) {
+						return nil,
+							&github.Response{
+								Response: &http.Response{
+									StatusCode: ok,
+								},
+							},
+							nil
+					},
+				},
+			},
+			want: want{
+				err: nil,
+			},
+		},
+		"DeleteFailed": {
+			reason: "Must return an error if the delete request fails",
+			args: args{
+				mg: newContent(
+					withBranch("main"),
+					withRepository(dummyText),
+				),
+				github: &fake.MockService{
+					MockDeleteFile: func(ctx context.Context, owner string, repo string, path string, opts *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error) {
+						return nil,
+							&github.Response{
+								Response: &http.Response{
+									StatusCode: internalError,
+								},
+							},
+							errBoom
+					},
+				},
+			},
+			want: want{
+				err: errors.Wrap(errBoom, errDeleteContent),
 			},
 		},
 	}

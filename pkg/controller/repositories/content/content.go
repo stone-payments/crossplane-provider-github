@@ -41,8 +41,11 @@ const (
 	disabledReconcile   = "Disabled"
 	errGetContent       = "cannot get GitHub repository content"
 	errCreateContent    = "cannot create Content"
-	errUnexpectedObject = "The managed resource is not a Repository resource"
+	errUpdateContent    = "cannot update Content"
+	errDeleteContent    = "cannot delete Content"
+	errUnexpectedObject = "The managed resource is not a Content resource"
 	errRepositoryEmpty  = "the repository value cannot be empty"
+	errCheckUpToDate    = "unable to determine if external resource is up to date"
 )
 
 // SetupContent adds a controller that reconciles Repositories.
@@ -131,15 +134,17 @@ func (e *contentExternal) Observe(ctx context.Context, mgd resource.Managed) (ma
 		return managed.ExternalObservation{}, errors.Wrap(err, errGetContent)
 	}
 
-	cr.Status.AtProvider.HTMLURL = *fc.HTMLURL
-	cr.Status.AtProvider.URL = *fc.URL
-	cr.Status.AtProvider.Sha = *fc.SHA
-
+	cr.Status.AtProvider = content.GenerateObservation(*fc)
 	cr.SetConditions(xpv1.Available())
 
+	upToDate, err := content.IsUpToDate(&cr.Spec.ForProvider, fc)
+	if err != nil {
+		return managed.ExternalObservation{}, errors.Wrap(err, errCheckUpToDate)
+	}
+
 	return managed.ExternalObservation{
+		ResourceUpToDate: upToDate,
 		ResourceExists:   true,
-		ResourceUpToDate: true,
 	}, nil
 }
 
@@ -172,21 +177,43 @@ func (e *contentExternal) Create(ctx context.Context, mgd resource.Managed) (man
 }
 
 func (e *contentExternal) Update(ctx context.Context, mgd resource.Managed) (managed.ExternalUpdate, error) {
-	_, ok := mgd.(*v1alpha1.Content)
+	cr, ok := mgd.(*v1alpha1.Content)
 	if !ok {
 		return managed.ExternalUpdate{}, errors.New(errUnexpectedObject)
 	}
 
-	return managed.ExternalUpdate{}, nil
+	_, _, err := e.gh.UpdateFile(ctx,
+		cr.Spec.ForProvider.Owner,
+		*cr.Spec.ForProvider.Repository,
+		cr.Spec.ForProvider.Path,
+		&github.RepositoryContentFileOptions{
+			Message: &cr.Spec.ForProvider.Message,
+			Branch:  cr.Spec.ForProvider.Branch,
+			Content: []byte(cr.Spec.ForProvider.Content),
+			SHA:     &cr.Status.AtProvider.SHA,
+		},
+	)
+	return managed.ExternalUpdate{}, errors.Wrap(err, errUpdateContent)
 }
 
 func (e *contentExternal) Delete(ctx context.Context, mgd resource.Managed) error {
-	_, ok := mgd.(*v1alpha1.Content)
+	cr, ok := mgd.(*v1alpha1.Content)
 	if !ok {
 		return errors.New(errUnexpectedObject)
 	}
 
-	return nil
+	_, _, err := e.gh.DeleteFile(ctx,
+		cr.Spec.ForProvider.Owner,
+		*cr.Spec.ForProvider.Repository,
+		cr.Spec.ForProvider.Path,
+		&github.RepositoryContentFileOptions{
+			Message: &cr.Spec.ForProvider.Message,
+			Branch:  cr.Spec.ForProvider.Branch,
+			Content: []byte(cr.Spec.ForProvider.Content),
+			SHA:     &cr.Status.AtProvider.SHA,
+		},
+	)
+	return errors.Wrap(err, errDeleteContent)
 }
 
 func skipReconcile(cr *v1alpha1.Content) bool {

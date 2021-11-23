@@ -28,6 +28,8 @@ var _ content.Service = (*MockService)(nil)
 type MockService struct {
 	MockGetContents func(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
 	MockCreateFile  func(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error)
+	MockUpdateFile  func(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error)
+	MockDeleteFile  func(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error)
 }
 
 // CreateFile is a fake Create SDK method
@@ -38,4 +40,14 @@ func (m *MockService) CreateFile(ctx context.Context, owner, repo, path string, 
 // GetContents is a fake GetContents SDK method
 func (m *MockService) GetContents(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error) {
 	return m.MockGetContents(ctx, owner, repo, path, opts)
+}
+
+// UpdateFile is a fake UpdateFile SDK method
+func (m *MockService) UpdateFile(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error) {
+	return m.MockUpdateFile(ctx, owner, repo, path, opts)
+}
+
+// DeleteFile is a fake DeleteFile SDK method
+func (m *MockService) DeleteFile(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentFileOptions) (*github.RepositoryContentResponse, *github.Response, error) {
+	return m.MockDeleteFile(ctx, owner, repo, path, opts)
 }
