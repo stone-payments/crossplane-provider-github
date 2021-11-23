@@ -61,13 +61,10 @@ type ContentParameters struct {
 type ContentSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
 
-	// TODO(Feggah): Add Enabled option for Reconcile
-	// The default value for Reconcile would be enabled
-	// if omitted.
-
 	// Whether the resource should be kept reconciled with external resource or not.
 	// +optional
-	// +kubebuilder:validation:Enum=Disabled
+	// +kubebuilder:validation:Enum=Disabled;Enabled
+	// +kubebuilder:default=Enabled
 	Reconcile *string `json:"reconcile,omitempty"`
 
 	ForProvider ContentParameters `json:"forProvider"`
@@ -77,7 +74,7 @@ type ContentSpec struct {
 type ContentObservation struct {
 	URL     string `json:"url,omitempty"`
 	HTMLURL string `json:"htmlUrl,omitempty"`
-	Sha     string `json:"sha,omitempty"`
+	SHA     string `json:"sha,omitempty"`
 }
 
 // ContentStatus represents the observed state of a Content.

@@ -142,10 +142,12 @@ spec:
                 - name
                 type: object
               reconcile:
+                default: Enabled
                 description: Whether the resource should be kept reconciled with external
                   resource or not.
                 enum:
                 - Disabled
+                - Enabled
                 type: string
               writeConnectionSecretToRef:
                 description: WriteConnectionSecretToReference specifies the namespace
