@@ -4,4 +4,4 @@ metadata:
   name: provider-github
 spec:
   controller:
-    image: crossplane/provider-github-controller:VERSION
+    image: DOCKER_REGISTRY/provider-github-controller:VERSION

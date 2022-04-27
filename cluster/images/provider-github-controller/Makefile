@@ -20,6 +20,6 @@ img.build:
 	@docker build $(BUILD_ARGS) \
 		--build-arg ARCH=$(ARCH) \
 		--build-arg TINI_VERSION=$(TINI_VERSION) \
-		-t $(IMAGE) \
+		-t $(IMAGE):$(VERSION) \
 		$(IMAGE_TEMP_DIR) || $(FAIL)
 	@$(OK) docker build $(IMAGE)
