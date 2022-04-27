@@ -1,0 +1,32 @@
+parameters:
+  registry: ''
+  repo: ''
+
+steps:
+  - script: gcloud auth configure-docker ${{ parameters.registry }} --quiet
+    displayName: Get Docker credentials for GCP
+    workingDirectory: $(System.DefaultWorkingDirectory)
+
+  - script: |
+      make go.build
+      make build.artifacts.platform
+    displayName: Build images
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    env:
+      BUILD_REGISTRY: ${{ parameters.registry }}/${{ parameters.repo }}
+      DOCKER_REGISTRY: ${{ parameters.registry }}/${{ parameters.repo }}
+      PLATFORMS: linux_amd64
+
+  - bash: |
+      make img.release.publish
+    displayName: Push to Registry
+    workingDirectory: $(System.DefaultWorkingDirectory)
+    env:
+      BUILD_REGISTRY: ${{ parameters.registry }}/${{ parameters.repo }}
+      DOCKER_REGISTRY: ${{ parameters.registry }}/${{ parameters.repo }}
+      PLATFORMS: linux_amd64
+
+  - script: |
+      make clean
+    displayName: Clean
+    workingDirectory: $(System.DefaultWorkingDirectory)

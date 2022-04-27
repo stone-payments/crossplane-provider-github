@@ -1,0 +1,23 @@
+trigger: none
+
+pool:
+  name: gcp-sre-platform-prod-agents
+  vmImage: ubuntu-latest
+
+resources:
+  repositories:
+  - repository: self-main
+    type: github
+    endpoint: stone-payments
+    name: stone-payments/crossplane-provider-github
+    ref: fix/publish
+
+jobs:
+  - job: deploy
+    steps:
+      - checkout: self-main
+        submodules: true
+      - template: steps/deploy.yml 
+        parameters:
+          registry: us-east1-docker.pkg.dev
+          repo: sreplatform/crossplane
