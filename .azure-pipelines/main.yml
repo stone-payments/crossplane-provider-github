@@ -10,7 +10,7 @@ resources:
     type: github
     endpoint: stone-payments
     name: stone-payments/crossplane-provider-github
-    ref: main
+    ref: develop
   - repository: templates
     type: github
     name: stone-payments/azure-pipelines-templates
