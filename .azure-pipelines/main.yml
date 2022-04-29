@@ -10,14 +10,16 @@ resources:
     type: github
     endpoint: stone-payments
     name: stone-payments/crossplane-provider-github
-    ref: fix/publish
-
+    ref: main
+  - repository: templates
+    type: github
+    name: stone-payments/azure-pipelines-templates
+    ref: master
+    endpoint: 'Stone Co. Github'
+    
 jobs:
   - job: deploy
     steps:
       - checkout: self-main
         submodules: true
-      - template: steps/deploy.yml 
-        parameters:
-          registry: us-east1-docker.pkg.dev
-          repo: sreplatform/crossplane
+      - template: platform/cd/crossplane/steps-provider-deploy.yml@templates
