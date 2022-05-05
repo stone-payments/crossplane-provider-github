@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	repositorysecretv1alpha1 "github.com/crossplane-contrib/provider-github/apis/actions/v1alpha1"
+	gitdatabasev1alpha1 "github.com/crossplane-contrib/provider-github/apis/gitdatabase/v1alpha1"
 	organizationsv1alpha1 "github.com/crossplane-contrib/provider-github/apis/organizations/v1alpha1"
 	repositoriesv1alpha1 "github.com/crossplane-contrib/provider-github/apis/repositories/v1alpha1"
 	v1beta1 "github.com/crossplane-contrib/provider-github/apis/v1beta1"
@@ -33,6 +34,7 @@ func init() {
 		organizationsv1alpha1.SchemeBuilder.AddToScheme,
 		repositoriesv1alpha1.SchemeBuilder.AddToScheme,
 		repositorysecretv1alpha1.SchemeBuilder.AddToScheme,
+		gitdatabasev1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 
