@@ -24,6 +24,7 @@ import (
 
 	repositorysecret "github.com/crossplane-contrib/provider-github/pkg/controller/actions"
 	"github.com/crossplane-contrib/provider-github/pkg/controller/config"
+	"github.com/crossplane-contrib/provider-github/pkg/controller/gitdatabase/orphanref"
 	"github.com/crossplane-contrib/provider-github/pkg/controller/organizations"
 	"github.com/crossplane-contrib/provider-github/pkg/controller/repositories/content"
 	repository "github.com/crossplane-contrib/provider-github/pkg/controller/repositories/repository"
@@ -38,6 +39,7 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 		repository.SetupRepository,
 		repositorysecret.SetupRepositorySecret,
 		content.SetupContent,
+		orphanref.SetupOrphanRef,
 	} {
 		if err := setup(mgr, l, rl); err != nil {
 			return err
