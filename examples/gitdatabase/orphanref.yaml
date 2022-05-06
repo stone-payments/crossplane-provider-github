@@ -1,0 +1,12 @@
+apiVersion: gitdatabase.github.crossplane.io/v1alpha1
+kind: OrphanRef
+metadata:
+  name: orphan-branch
+spec:
+  forProvider:
+    owner: github-user-or-org
+    repository: my-new-repo
+    path: .gitkeep
+    message: Initial commit for orphan branch
+  providerConfigRef:
+    name: github-provider-config
