@@ -25,7 +25,7 @@ import (
 
 // Package type metadata.
 const (
-	Group   = "repositories.github.crossplane.io"
+	Group   = "secrets.github.crossplane.io"
 	Version = "v1alpha1"
 )
 
@@ -37,23 +37,14 @@ var (
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 )
 
-// Repository type metadata.
+// RepositorySecret type metadata.
 var (
-	RepositoryKind             = reflect.TypeOf(Repository{}).Name()
-	RepositoryGroupKind        = schema.GroupKind{Group: Group, Kind: RepositoryKind}.String()
-	RepositoryKindAPIVersion   = RepositoryKind + "." + SchemeGroupVersion.String()
-	RepositoryGroupVersionKind = SchemeGroupVersion.WithKind(RepositoryKind)
-)
-
-// Content type metadata.
-var (
-	ContentKind             = reflect.TypeOf(Content{}).Name()
-	ContentGroupKind        = schema.GroupKind{Group: Group, Kind: ContentKind}.String()
-	ContentKindAPIVersion   = ContentKind + "." + SchemeGroupVersion.String()
-	ContentGroupVersionKind = SchemeGroupVersion.WithKind(ContentKind)
+	RepositorySecretKind             = reflect.TypeOf(RepositorySecret{}).Name()
+	RepositorySecretGroupKind        = schema.GroupKind{Group: Group, Kind: RepositorySecretKind}.String()
+	RepositorySecretKindAPIVersion   = RepositorySecretKind + "." + SchemeGroupVersion.String()
+	RepositorySecretGroupVersionKind = SchemeGroupVersion.WithKind(RepositorySecretKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&Repository{}, &RepositoryList{})
-	SchemeBuilder.Register(&Content{}, &ContentList{})
+	SchemeBuilder.Register(&RepositorySecret{}, &RepositorySecretList{})
 }

@@ -1,5 +1,5 @@
 /*
-Copyright 2021 The Crossplane Authors.
+Copyright 2022 The Crossplane Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import (
 
 // Package type metadata.
 const (
-	Group   = "repositories.github.crossplane.io"
+	Group   = "gitdatabase.github.crossplane.io"
 	Version = "v1alpha1"
 )
 
@@ -37,23 +37,14 @@ var (
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 )
 
-// Repository type metadata.
+// OrphanRef type metadata.
 var (
-	RepositoryKind             = reflect.TypeOf(Repository{}).Name()
-	RepositoryGroupKind        = schema.GroupKind{Group: Group, Kind: RepositoryKind}.String()
-	RepositoryKindAPIVersion   = RepositoryKind + "." + SchemeGroupVersion.String()
-	RepositoryGroupVersionKind = SchemeGroupVersion.WithKind(RepositoryKind)
-)
-
-// Content type metadata.
-var (
-	ContentKind             = reflect.TypeOf(Content{}).Name()
-	ContentGroupKind        = schema.GroupKind{Group: Group, Kind: ContentKind}.String()
-	ContentKindAPIVersion   = ContentKind + "." + SchemeGroupVersion.String()
-	ContentGroupVersionKind = SchemeGroupVersion.WithKind(ContentKind)
+	OrphanRefKind             = reflect.TypeOf(OrphanRef{}).Name()
+	OrphanRefGroupKind        = schema.GroupKind{Group: Group, Kind: OrphanRefKind}.String()
+	OrphanRefKindAPIVersion   = OrphanRefKind + "." + SchemeGroupVersion.String()
+	OrphanRefGroupVersionKind = SchemeGroupVersion.WithKind(OrphanRefKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&Repository{}, &RepositoryList{})
-	SchemeBuilder.Register(&Content{}, &ContentList{})
+	SchemeBuilder.Register(&OrphanRef{}, &OrphanRefList{})
 }

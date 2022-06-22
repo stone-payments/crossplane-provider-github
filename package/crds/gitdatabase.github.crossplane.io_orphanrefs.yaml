@@ -1,5 +1,4 @@
 
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -7,23 +6,23 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.4
   creationTimestamp: null
-  name: memberships.organizations.github.crossplane.io
+  name: orphanrefs.gitdatabase.github.crossplane.io
 spec:
-  group: organizations.github.crossplane.io
+  group: gitdatabase.github.crossplane.io
   names:
     categories:
     - crossplane
     - managed
     - github
-    kind: Membership
-    listKind: MembershipList
-    plural: memberships
-    singular: membership
+    kind: OrphanRef
+    listKind: OrphanRefList
+    plural: orphanrefs
+    singular: orphanref
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.atProvider.arn
-      name: ARN
+    - jsonPath: .status.atProvider.url
+      name: URL
       type: string
     - jsonPath: .status.conditions[?(@.type=='Ready')].status
       name: READY
@@ -37,8 +36,8 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: A Membership is a managed resource that represents a AWS Simple
-          Membership
+        description: A OrphanRef is a managed resource that represents a GitHub Repository
+          OrphanRef
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -53,7 +52,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: MembershipSpec defines the desired state of a Membership.
+            description: OrphanRefSpec defines the desired state of a OrphanRef.
             properties:
               deletionPolicy:
                 default: Delete
@@ -65,37 +64,50 @@ spec:
                 - Delete
                 type: string
               forProvider:
-                description: MembershipParameters represents the status of a user's
-                  membership in an organization or team.
+                description: OrphanRefParameters defines the desired state of a GitHub
+                  Repository OrphanRef.
                 properties:
-                  email:
-                    description: Email address of the person you are inviting, which
-                      can be an existing GitHub user. Not required if you provide
-                      InviteeID
+                  message:
+                    default: Initial Commit
+                    description: The initial commit message.
                     type: string
-                  inviteeId:
-                    description: GitHub user ID for the person you are inviting. Not
-                      required if you provide Email.
-                    format: int64
-                    type: integer
-                  organization:
-                    description: Name of the organization.
+                  owner:
+                    description: The name of the Repository owner. The owner can be
+                      an organization or an user.
                     type: string
-                  role:
-                    description: "Specify role for new member. Can be one of: * admin
-                      - Organization owners with full administrative rights to the
-                      \t organization and complete access to all repositories and
-                      teams. * direct_member - Non-owner organization members with
-                      ability to see   other members and join teams by invitation.
-                      * billing_manager - Non-owner organization members with ability
-                      to   manage the billing settings of your organization. Default
-                      is \"direct_member\"."
+                  path:
+                    description: The dummy file path.
                     type: string
-                  user:
-                    description: User is the username of the github user.
+                  repository:
+                    description: The name of the Repository.
                     type: string
+                  repositoryRef:
+                    description: RepositoryRef references a Repository and retrieves
+                      its name.
+                    properties:
+                      name:
+                        description: Name of the referenced object.
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  repositorySelector:
+                    description: RepositorySelector selects a reference to a Repository.
+                    properties:
+                      matchControllerRef:
+                        description: MatchControllerRef ensures an object with the
+                          same controller reference as the selecting object is selected.
+                        type: boolean
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: MatchLabels ensures an object with matching labels
+                          is selected.
+                        type: object
+                    type: object
                 required:
-                - organization
+                - owner
+                - path
                 type: object
               providerConfigRef:
                 default:
@@ -142,15 +154,13 @@ spec:
             - forProvider
             type: object
           status:
-            description: MembershipStatus represents the observed state of a Membership.
+            description: OrphanRefStatus represents the observed state of a OrphanRef.
             properties:
               atProvider:
-                description: MembershipObservation is the representation of the current
+                description: OrphanRefObservation is the representation of the current
                   state that is observed
                 properties:
-                  state:
-                    description: 'State is the user''s status within the organization
-                      or team. Possible values are: "active", "pending"'
+                  ref:
                     type: string
                   url:
                     type: string

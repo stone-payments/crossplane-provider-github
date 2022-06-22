@@ -1,0 +1,16 @@
+apiVersion: repositories.github.crossplane.io/v1alpha1
+kind: Content
+metadata:
+  name: example
+spec:
+  forProvider:
+    owner: crossplane
+    repositoryRef:
+      name: sample
+    branch: main
+    path: README.md
+    message: Update README.md
+    content: |
+      foo bar
+  providerConfigRef:
+    name: github-provider-config

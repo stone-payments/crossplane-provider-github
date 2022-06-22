@@ -44,7 +44,7 @@ GO111MODULE = on
 # ====================================================================================
 # Setup Images
 
-DOCKER_REGISTRY = crossplane
+DOCKER_REGISTRY ?= crossplane
 IMAGES = provider-github provider-github-controller
 -include build/makelib/image.mk
 
@@ -77,16 +77,6 @@ crds.clean:
 	@$(OK) cleaned generated CRDs
 
 generate: crds.clean
-
-# Ensure a PR is ready for review.
-reviewable: generate lint
-	@go mod tidy
-
-# Ensure branch is clean.
-check-diff: reviewable
-	@$(INFO) checking that branch is clean
-	@git diff --quiet || $(FAIL)
-	@$(OK) branch is clean
 
 # integration tests
 e2e.run: test-integration
@@ -136,4 +126,11 @@ crossplane.help:
 
 help-special: crossplane.help
 
+version:
+	@echo $(VERSION)
+
 .PHONY: crossplane.help help-special
+
+coverage:
+	go test -v -coverprofile=cover.out ./...
+	go tool cover -html=cover.out
