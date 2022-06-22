@@ -52,7 +52,7 @@ func GetConfig(ctx context.Context, c client.Client, mg resource.Managed) ([]byt
 
 // newClientFields helps to create new client by differents credentials
 type newClientFields struct {
-	ID             int64  `json:"id,omitempty"`
+	AppID          int64  `json:"appId,omitempty"`
 	InstallationID int64  `json:"installationId,omitempty"`
 	PEMFile        string `json:"pemFile,omitempty"`
 	PAT            string `json:"token,omitempty"`
@@ -75,7 +75,7 @@ func NewClient(token string) *github.Client {
 
 		tc = oauth2.NewClient(ctx, ts)
 	} else {
-		ts, err := ghapps.New(http.DefaultTransport, creds.ID, creds.InstallationID, []byte(creds.PEMFile))
+		ts, err := ghapps.New(http.DefaultTransport, creds.AppID, creds.InstallationID, []byte(creds.PEMFile))
 		if err != nil {
 			fmt.Println(err)
 		}
