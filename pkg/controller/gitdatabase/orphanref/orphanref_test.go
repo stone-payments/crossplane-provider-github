@@ -70,7 +70,6 @@ type args struct {
 	gh   orphanref.Service
 }
 
-
 func TestObserve(t *testing.T) {
 	type want struct {
 		eo  managed.ExternalObservation
