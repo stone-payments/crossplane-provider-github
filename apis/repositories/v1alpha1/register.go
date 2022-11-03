@@ -53,7 +53,16 @@ var (
 	ContentGroupVersionKind = SchemeGroupVersion.WithKind(ContentKind)
 )
 
+// BranchProtectionRule type metadata.
+var (
+	BranchProtectionRuleKind             = reflect.TypeOf(BranchProtectionRule{}).Name()
+	BranchProtectionRuleGroupKind        = schema.GroupKind{Group: Group, Kind: BranchProtectionRuleKind}.String()
+	BranchProtectionRuleKindAPIVersion   = BranchProtectionRuleKind + "." + SchemeGroupVersion.String()
+	BranchProtectionRuleGroupVersionKind = SchemeGroupVersion.WithKind(BranchProtectionRuleKind)
+)
+
 func init() {
 	SchemeBuilder.Register(&Repository{}, &RepositoryList{})
 	SchemeBuilder.Register(&Content{}, &ContentList{})
+	SchemeBuilder.Register(&BranchProtectionRule{}, &BranchProtectionRuleList{})
 }

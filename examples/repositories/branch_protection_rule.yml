@@ -1,0 +1,12 @@
+apiVersion: repositories.github.crossplane.io/v1alpha1
+kind: BranchProtectionRule
+metadata:
+  name: example
+spec:
+  forProvider:
+    owner: platform-test-org
+    pattern: dev*
+    repository: gabriel-1107-3
+    isAdminEnforced: true
+  providerConfigRef:
+    name: default
