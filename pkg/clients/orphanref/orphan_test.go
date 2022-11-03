@@ -17,7 +17,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v48/github"
 
 	"github.com/crossplane-contrib/provider-github/apis/gitdatabase/v1alpha1"
 )

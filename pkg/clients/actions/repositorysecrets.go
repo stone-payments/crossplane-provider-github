@@ -25,7 +25,7 @@ import (
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v48/github"
 	"golang.org/x/crypto/nacl/box"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

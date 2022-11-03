@@ -17,7 +17,7 @@ import (
 	"context"
 
 	"github.com/crossplane-contrib/provider-github/pkg/clients/repositories"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v48/github"
 )
 
 // This ensures that the mock implements the Service interface

@@ -19,7 +19,7 @@ import (
 	"github.com/crossplane-contrib/provider-github/apis/repositories/v1alpha1"
 	ghclient "github.com/crossplane-contrib/provider-github/pkg/clients"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v48/github"
 	"github.com/mitchellh/copystructure"
 )
 
