@@ -23,7 +23,7 @@ import (
 	"net/http"
 
 	ghapps "github.com/bradleyfalzon/ghinstallation"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v48/github"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"k8s.io/apimachinery/pkg/types"
@@ -129,4 +129,37 @@ func BoolValue(b *bool) bool {
 		return false
 	}
 	return *b
+}
+
+// LateInitializeString implements late initialization for string type.
+func LateInitializeString(s *string, from string) *string {
+	if s != nil || from == "" {
+		return s
+	}
+	return &from
+}
+
+// LateInitializeInt implements late initialization for int type.
+func LateInitializeInt(i *int, from int) *int {
+	if i != nil || from == 0 {
+		return i
+	}
+	return &from
+}
+
+// LateInitializeBool implements late initialization for bool type.
+func LateInitializeBool(b *bool, from bool) *bool {
+	if b != nil || !from {
+		return b
+	}
+	return &from
+}
+
+// LateInitializeStringSlice implements late initialization for
+// string slice type.
+func LateInitializeStringSlice(s []string, from []string) []string {
+	if len(s) != 0 || len(from) == 0 {
+		return s
+	}
+	return from
 }

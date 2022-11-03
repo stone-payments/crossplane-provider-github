@@ -23,7 +23,7 @@ import (
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v48/github"
 	"github.com/mitchellh/copystructure"
 	"github.com/pkg/errors"
 )
@@ -205,7 +205,7 @@ func GenerateObservation(r github.Repository) v1alpha1.RepositoryObservation {
 	}
 	if r.Permissions != nil {
 		o.Permissions = map[string]bool{}
-		for k, v := range *r.Permissions {
+		for k, v := range r.Permissions {
 			o.Permissions[k] = v
 		}
 	}
