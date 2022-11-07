@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,11 +28,11 @@ type BranchProtectionRuleParameters struct {
 	// requiresApprovingReviews -> saber com base no requiredApprovingReviewCount
 	// restrictsPushes -> saber com base no pushAllowances
 
-	// Repository global node ID. If not specified, will be infered by the
+	// Repository global node ID. If not specified, will be inferred by the
 	// Repository name field.
 	//
 	// +optional
-	RepositoryId *string `graphql:"repositoryId,omitempty" json:"repositoryId,omitempty"`
+	RepositoryID *string `graphql:"repositoryId,omitempty" json:"repositoryId,omitempty"`
 
 	// The pattern to be protected.
 	Pattern string `graphql:"pattern" json:"pattern"`

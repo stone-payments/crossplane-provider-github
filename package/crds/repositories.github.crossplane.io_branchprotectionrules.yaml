@@ -108,7 +108,7 @@ spec:
                     type: string
                   repositoryId:
                     description: Repository global node ID. If not specified, will
-                      be infered by the Repository name field.
+                      be inferred by the Repository name field.
                     type: string
                   repositoryRef:
                     description: RepositoryRef references a Repository and retrieves

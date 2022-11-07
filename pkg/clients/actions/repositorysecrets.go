@@ -3,14 +3,13 @@ Copyright 2021 The Crossplane Authors.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 package repositorysecret
 
 import (
@@ -40,10 +39,14 @@ type Service interface {
 
 // NewService creates a new Service based on the *github.Client
 // returned by the NewClient SDK method.
-func NewService(token string) *Service {
-	c := ghclient.NewClient(token)
+func NewService(token string) (*Service, error) {
+	c, err := ghclient.NewV3Client(token)
+	if err != nil {
+		return nil, err
+	}
+
 	r := Service(c.Actions)
-	return &r
+	return &r, nil
 }
 
 // CreateOrUpdateSec create or update repository secret in GitHub
@@ -123,7 +126,7 @@ func generateHash(secretValue string) string {
 func encryptSecret(publicKey *github.PublicKey, secretName string, secretValue string) (*github.EncryptedSecret, error) {
 	decodedPublicKey, err := base64.StdEncoding.DecodeString(publicKey.GetKey())
 	if err != nil {
-		return nil, fmt.Errorf("base64.StdEncoding.DecodeString was unable to decode public key: %v", err)
+		return nil, fmt.Errorf("base64.StdEncoding.DecodeString was unable to decode public key: %w", err)
 	}
 
 	var boxKey [32]byte

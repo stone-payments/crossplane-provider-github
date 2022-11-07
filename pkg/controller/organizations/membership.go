@@ -1,3 +1,18 @@
+/*
+Copyright 2021 The Crossplane Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package organizations
 
 import (
@@ -37,7 +52,7 @@ func SetupMembership(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimite
 		For(&v1alpha1.Membership{}).
 		Complete(managed.NewReconciler(mgr,
 			resource.ManagedKind(v1alpha1.MembershipGroupVersionKind),
-			managed.WithExternalConnecter(&connector{client: mgr.GetClient(), newClientFn: ghclient.NewClient}),
+			managed.WithExternalConnecter(&connector{client: mgr.GetClient(), newClientFn: ghclient.NewV3Client}),
 			managed.WithConnectionPublishers(),
 			managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
 			managed.WithInitializers(managed.NewDefaultProviderConfig(mgr.GetClient())),
@@ -47,7 +62,7 @@ func SetupMembership(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimite
 
 type connector struct {
 	client      client.Client
-	newClientFn func(string) *github.Client
+	newClientFn func(string) (*github.Client, error)
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
@@ -59,7 +74,16 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	if err != nil {
 		return nil, err
 	}
-	return &external{c.newClientFn(string(cfg)), c.client}, nil
+
+	client, err := c.newClientFn(string(cfg))
+	if err != nil {
+		return nil, err
+	}
+
+	return &external{
+		client: client,
+		kube:   c.client,
+	}, nil
 }
 
 type external struct {

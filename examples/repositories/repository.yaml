@@ -4,7 +4,7 @@ metadata:
   name: sample
 spec:
   forProvider:
-    owner: crossplane
-    org: crossplane
+    owner: platform-test-org
+    org: platform-test-org
   providerConfigRef:
-    name: github-provider-config
+    name: default

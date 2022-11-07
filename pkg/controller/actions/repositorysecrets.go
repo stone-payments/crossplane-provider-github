@@ -1,17 +1,16 @@
-package repositorysecret
-
 /*
 Copyright 2021 The Crossplane Authors.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+package repositorysecret
 
 import (
 	"context"
@@ -72,7 +71,7 @@ func SetupRepositorySecret(mgr ctrl.Manager, l logging.Logger, rl workqueue.Rate
 
 type connector struct {
 	client      client.Client
-	newClientFn func(string) *repositorysecret.Service
+	newClientFn func(string) (*repositorysecret.Service, error)
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
@@ -84,7 +83,16 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	if err != nil {
 		return nil, err
 	}
-	return &external{*c.newClientFn(string(cfg)), c.client}, nil
+
+	client, err := c.newClientFn(string(cfg))
+	if err != nil {
+		return nil, err
+	}
+
+	return &external{
+		gh:     *client,
+		client: c.client,
+	}, nil
 }
 
 type external struct {
