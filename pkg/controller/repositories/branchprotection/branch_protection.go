@@ -3,14 +3,13 @@ Copyright 2021 The Crossplane Authors.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 package branchprotection
 
 import (
@@ -36,13 +35,7 @@ import (
 )
 
 const (
-	errUnexpectedObject               = "The managed resource is not a BranchProtectionRule resource"
-	errGetBranchProtectionRule        = "Cannot get GitHub BranchProtectionRule"
-	errCheckUpToDate                  = "unable to determine if external resource is up to date"
-	errCreateBranchProtectionRule     = "cannot create BranchProtectionRule"
-	errUpdateBranchProtectionRule     = "cannot update BranchProtectionRule"
-	errDeleteBranchProtectionRule     = "cannot delete BranchProtectionRule"
-	errKubeUpdateBranchProtectionRule = "cannot update BranchProtectionRule custom resource"
+	errUnexpectedObject = "The managed resource is not a BranchProtectionRule resource"
 )
 
 // SetupBranchProtectionRule adds a controller that reconciles BranchProtectionRule.
@@ -60,7 +53,7 @@ func SetupBranchProtectionRule(mgr ctrl.Manager, l logging.Logger, rl workqueue.
 			managed.WithExternalConnecter(
 				&connector{
 					client:      mgr.GetClient(),
-					newClientFn: branchprotection.NewService,
+					newClientFn: branchprotection.NewClient,
 				},
 			),
 			managed.WithConnectionPublishers(),
@@ -75,7 +68,7 @@ func SetupBranchProtectionRule(mgr ctrl.Manager, l logging.Logger, rl workqueue.
 
 type connector struct {
 	client      client.Client
-	newClientFn func(string) *branchprotection.Service
+	newClientFn func(string) (branchprotection.Service, error)
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
@@ -87,7 +80,16 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	if err != nil {
 		return nil, err
 	}
-	return &external{*c.newClientFn(string(cfg)), c.client}, nil
+
+	client, err := c.newClientFn(string(cfg))
+	if err != nil {
+		return nil, err
+	}
+
+	return &external{
+		gh:     client,
+		client: c.client,
+	}, nil
 }
 
 type external struct {
@@ -96,53 +98,12 @@ type external struct {
 }
 
 func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.ExternalObservation, error) {
-	cr, ok := mgd.(*v1alpha1.BranchProtectionRule)
+	_, ok := mgd.(*v1alpha1.BranchProtectionRule)
 	if !ok {
 		return managed.ExternalObservation{}, errors.New(errUnexpectedObject)
 	}
 
-	bp, res, err := e.gh.GetBranchProtection(
-		ctx,
-		cr.Spec.ForProvider.Owner,
-		ghclient.StringValue(cr.Spec.ForProvider.Repository),
-		cr.Spec.ForProvider.Branch,
-	)
-	if err != nil {
-		if res.StatusCode == 404 {
-			return managed.ExternalObservation{}, nil
-		}
-		return managed.ExternalObservation{}, errors.Wrap(err, errGetBranchProtectionRule)
-	}
-
-	// // Import BranchProtectionRule if already exists
-	// lateInit := false
-	// currentSpec := cr.Spec.ForProvider.DeepCopy()
-	// branchprotection.LateInitialize(&cr.Spec.ForProvider, bp)
-	// if !cmp.Equal(currentSpec, &cr.Spec.ForProvider) {
-	// 	if err := e.client.Update(ctx, cr); err != nil {
-	// 		return managed.ExternalObservation{}, errors.Wrap(err, errKubeUpdateBranchProtectionRule)
-	// 	}
-	// 	lateInit = true
-	// }
-
-	// cr.Status.SetConditions(xpv1.Available())
-
-	// upToDate, diff, err := branchprotection.IsUpToDate(&cr.Spec.ForProvider, bp)
-	// if err != nil {
-	// 	return managed.ExternalObservation{}, errors.Wrap(err, errCheckUpToDate)
-	// }
-
-	// return managed.ExternalObservation{
-	// 	ResourceUpToDate:        upToDate,
-	// 	ResourceExists:          true,
-	// 	ResourceLateInitialized: lateInit,
-	// 	Diff:                    diff,
-	// }, nil
-	return managed.ExternalObservation{
-		ResourceUpToDate:        true,
-		ResourceExists:          true,
-		ResourceLateInitialized: false,
-	}, nil
+	return managed.ExternalObservation{}, nil
 }
 
 func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.ExternalCreation, error) {
@@ -162,6 +123,8 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 		return managed.ExternalUpdate{}, errors.New(errUnexpectedObject)
 	}
 
+	fmt.Println("UPDATE BRANCHPROTECTIONRULE")
+
 	return managed.ExternalUpdate{}, nil
 }
 
@@ -170,6 +133,8 @@ func (e *external) Delete(ctx context.Context, mgd resource.Managed) error {
 	if !ok {
 		return errors.New(errUnexpectedObject)
 	}
+
+	fmt.Println("DELETE BRANCHPROTECTIONRULE")
 
 	return nil
 }

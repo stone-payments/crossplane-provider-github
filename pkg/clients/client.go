@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,18 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 package clients
 
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	ghapps "github.com/bradleyfalzon/ghinstallation"
 	"github.com/google/go-github/v48/github"
 	"github.com/pkg/errors"
+	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -58,14 +57,12 @@ type newClientFields struct {
 	PAT            string `json:"token,omitempty"`
 }
 
-// NewClient creates a new client.
-func NewClient(token string) *github.Client {
-	ctx := context.Background()
+func newHTTPClient(token string) (*http.Client, error) {
 	creds := newClientFields{}
 	var tc *http.Client
 
 	if err := json.Unmarshal([]byte(token), &creds); err != nil {
-		fmt.Println(err)
+		return nil, errors.Wrap(err, "could not unmarshal token into newClientFields struct")
 	}
 
 	if creds.PAT != "" {
@@ -73,17 +70,37 @@ func NewClient(token string) *github.Client {
 			&oauth2.Token{AccessToken: creds.PAT},
 		)
 
-		tc = oauth2.NewClient(ctx, ts)
+		tc = oauth2.NewClient(context.Background(), ts)
 	} else {
 		ts, err := ghapps.New(http.DefaultTransport, creds.AppID, creds.InstallationID, []byte(creds.PEMFile))
 		if err != nil {
-			fmt.Println(err)
+			return nil, errors.Wrap(err, "could not create GitHub Apps Transport")
 		}
 
 		tc = &http.Client{Transport: ts}
 	}
 
-	return github.NewClient(tc)
+	return tc, nil
+}
+
+// NewV3Client creates a new GitHub V3 REST API client.
+func NewV3Client(token string) (*github.Client, error) {
+	client, err := newHTTPClient(token)
+	if err != nil {
+		return nil, err
+	}
+
+	return github.NewClient(client), nil
+}
+
+// NewV4Client creates a new GitHub V4 GraphQL API client.
+func NewV4Client(token string) (*githubv4.Client, error) {
+	client, err := newHTTPClient(token)
+	if err != nil {
+		return nil, err
+	}
+
+	return githubv4.NewClient(client), nil
 }
 
 // StringPtr converts the supplied string to a pointer to that string.

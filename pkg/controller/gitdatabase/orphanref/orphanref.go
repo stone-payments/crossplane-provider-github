@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 package orphanref
 
 import (
@@ -77,7 +76,7 @@ func SetupOrphanRef(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter
 
 type orphanRefConnector struct {
 	client      client.Client
-	newClientFn func(string) *orphanref.Service
+	newClientFn func(string) (*orphanref.Service, error)
 }
 
 func (c *orphanRefConnector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
@@ -90,7 +89,15 @@ func (c *orphanRefConnector) Connect(ctx context.Context, mg resource.Managed) (
 		return nil, err
 	}
 
-	return &orphanRefExternal{*c.newClientFn(string(cfg)), c.client}, nil
+	client, err := c.newClientFn(string(cfg))
+	if err != nil {
+		return nil, err
+	}
+
+	return &orphanRefExternal{
+		gh:     *client,
+		client: c.client,
+	}, nil
 }
 
 type orphanRefExternal struct {
