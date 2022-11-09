@@ -335,7 +335,9 @@ func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 	return input
 }
 
-func GenerateUpdateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRuleParameters, bypassForcePushIds, bypassPullRequestIds, pushIds []string, id string) githubv4.UpdateBranchProtectionRuleInput {
+// GenerateUpdateBranchProtectionRuleInput generates a githubv4.UpdateBranchProtectionRuleInput
+// based on the v1alpha1.BranchProtectionRuleParameters passed as parameter
+func GenerateUpdateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRuleParameters, bypassForcePushIds, bypassPullRequestIds, pushIds []string, id string) githubv4.UpdateBranchProtectionRuleInput { // nolint:gocyclo
 	input := githubv4.UpdateBranchProtectionRuleInput{
 		Pattern:                githubv4.NewString(githubv4.String(params.Pattern)),
 		BranchProtectionRuleID: id,
