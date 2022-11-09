@@ -44,6 +44,7 @@ const (
 	errCheckUpToDate              = "unable to determine if external resource is up to date"
 	errCreateBranchProtectionRule = "cannot create BranchProtectionRule"
 	errUpdateBranchProtectionRule = "cannot update BranchProtectionRule"
+	errDeleteBranchProtectionRule = "cannot delete BranchProtectionRule"
 )
 
 // SetupBranchProtectionRule adds a controller that reconciles BranchProtectionRule.
@@ -165,14 +166,12 @@ func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.Ex
 }
 
 func (e *external) Delete(ctx context.Context, mgd resource.Managed) error {
-	_, ok := mgd.(*v1alpha1.BranchProtectionRule)
+	cr, ok := mgd.(*v1alpha1.BranchProtectionRule)
 	if !ok {
 		return errors.New(errUnexpectedObject)
 	}
 
-	fmt.Println("DELETE BRANCHPROTECTIONRULE")
-
-	return nil
+	return errors.Wrap(e.DeleteBranchProtectionRule(ctx, cr.Status.AtProvider.ID), errDeleteBranchProtectionRule)
 }
 
 // CheckBranchProtectionRuleExistance checks if a BranchProtectionRule pattern
@@ -364,6 +363,20 @@ func (e *external) UpdateBranchProtectionRule(ctx context.Context, cr *v1alpha1.
 		return err
 	}
 	return nil
+}
+
+func (e *external) DeleteBranchProtectionRule(ctx context.Context, id string) error {
+	var mutate struct {
+		DeleteBranchProtectionRule struct {
+			ClientMutationID githubv4.ID
+		} `graphql:"deleteBranchProtectionRule(input: $input)"`
+	}
+
+	input := githubv4.DeleteBranchProtectionRuleInput{
+		BranchProtectionRuleID: id,
+	}
+
+	return e.gh.Mutate(ctx, &mutate, input, nil)
 }
 
 func (e *external) getActorsIDs(ctx context.Context, actors []string, owner string) ([]string, error) {
