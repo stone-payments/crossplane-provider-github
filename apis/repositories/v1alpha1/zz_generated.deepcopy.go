@@ -108,11 +108,6 @@ func (in *BranchProtectionRuleParameters) DeepCopyInto(out *BranchProtectionRule
 		*out = new(string)
 		**out = **in
 	}
-	if in.Owner != nil {
-		in, out := &in.Owner, &out.Owner
-		*out = new(string)
-		**out = **in
-	}
 	if in.Repository != nil {
 		in, out := &in.Repository, &out.Repository
 		*out = new(string)

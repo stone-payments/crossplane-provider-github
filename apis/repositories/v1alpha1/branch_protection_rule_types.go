@@ -40,9 +40,8 @@ type BranchProtectionRuleParameters struct {
 	// The name of the Repository owner.
 	// The owner can be an organization or an user.
 	//
-	// +optional
 	// +immutable
-	Owner *string `graphql:"owner,omitempty" json:"owner,omitempty"`
+	Owner string `graphql:"owner,omitempty" json:"owner"`
 
 	// The name of the Repository.
 	//
@@ -64,9 +63,8 @@ type BranchProtectionRuleParameters struct {
 	// available for organization-owned repositories. Defaults to disabled.
 	//
 	// Users should be specified in the format: /{username}.
-	// Apps should be specified in the format: /{app}
+	// Apps should be specified in the format: /app/{app-slug}
 	// Teams should be specified in the format: /{organization}/{team-slug}
-	// NodeID should be specified in the format: {nodeId}
 	//
 	// +optional
 	BypassForcePushAllowances []string `graphql:"bypassForcePushAllowances,omitempty" json:"bypassForcePushAllowances,omitempty"`
@@ -74,7 +72,7 @@ type BranchProtectionRuleParameters struct {
 	// A list of actors able to bypass PRs for this branch protection rule. Defaults to disabled.
 	//
 	// Users should be specified in the format: /{username}.
-	// Apps should be specified in the format: /{app}
+	// Apps should be specified in the format: /app/{app-slug}
 	// Teams should be specified in the format: /{organization}/{team-slug}
 	// NodeID should be specified in the format: {nodeId}
 	//
@@ -94,7 +92,7 @@ type BranchProtectionRuleParameters struct {
 	// Actors who may push to the protected branch. Defaults to disabled.
 	//
 	// Users should be specified in the format: /{username}.
-	// Apps should be specified in the format: /{app}
+	// Apps should be specified in the format: /app/{app-slug}
 	// Teams should be specified in the format: /{organization}/{team-slug}
 	// NodeID should be specified in the format: {nodeId}
 	//
