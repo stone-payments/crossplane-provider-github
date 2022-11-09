@@ -65,19 +65,16 @@ spec:
                     description: "Actors who may force push to the protected branch.
                       User, app, and team restrictions are only available for organization-owned
                       repositories. Defaults to disabled. \n Users should be specified
-                      in the format: /{username}. Apps should be specified in the
-                      format: /app/{app-slug} Teams should be specified in the format:
-                      /{organization}/{team-slug}"
+                      in the format: /{username}. Teams should be specified in the
+                      format: /{organization}/{team-slug}"
                     items:
                       type: string
                     type: array
                   bypassPullRequestAllowances:
                     description: "A list of actors able to bypass PRs for this branch
                       protection rule. Defaults to disabled. \n Users should be specified
-                      in the format: /{username}. Apps should be specified in the
-                      format: /app/{app-slug} Teams should be specified in the format:
-                      /{organization}/{team-slug} NodeID should be specified in the
-                      format: {nodeId}"
+                      in the format: /{username}. Teams should be specified in the
+                      format: /{organization}/{team-slug}"
                     items:
                       type: string
                     type: array
@@ -98,9 +95,7 @@ spec:
                   pushAllowances:
                     description: "Actors who may push to the protected branch. Defaults
                       to disabled. \n Users should be specified in the format: /{username}.
-                      Apps should be specified in the format: /app/{app-slug} Teams
-                      should be specified in the format: /{organization}/{team-slug}
-                      NodeID should be specified in the format: {nodeId}"
+                      Teams should be specified in the format: /{organization}/{team-slug}"
                     items:
                       type: string
                     type: array

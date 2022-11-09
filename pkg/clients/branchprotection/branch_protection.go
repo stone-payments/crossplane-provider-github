@@ -15,6 +15,8 @@ package branchprotection
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/crossplane-contrib/provider-github/apis/repositories/v1alpha1"
 	ghclient "github.com/crossplane-contrib/provider-github/pkg/clients"
@@ -47,17 +49,10 @@ type User struct {
 	Type  githubv4.String `graphql:"__typename"`
 }
 
-// App represents a GitHub App
-type App struct {
-	Slug githubv4.String `graphql:"slug"`
-	Type githubv4.String `graphql:"__typename"`
-}
-
 // ActorTypes represents the possible
 // types of an actor
 type ActorTypes struct {
 	Actor struct {
-		App  App  `graphql:"... on App"`
 		Team Team `graphql:"... on Team"`
 		User User `graphql:"... on User"`
 	}
@@ -186,6 +181,14 @@ func IsUpToDate(desired v1alpha1.BranchProtectionRuleParameters, external Extern
 
 	current := GenerateParametersFromExternal(clone, external)
 
+	// Sort strings to be compared
+	sort.Strings(current.BypassForcePushAllowances)
+	sort.Strings(current.BypassPullRequestAllowances)
+	sort.Strings(current.PushAllowances)
+	sort.Strings(desired.BypassForcePushAllowances)
+	sort.Strings(desired.BypassPullRequestAllowances)
+	sort.Strings(desired.PushAllowances)
+
 	return cmp.Diff(
 		desired,
 		current,
@@ -272,11 +275,88 @@ func transformActorTypesToSlice(actors []ActorTypes, org string) []string {
 			actor := fmt.Sprintf("/%v", string(v.Actor.User.Login))
 			list = append(list, actor)
 		}
-
-		if v.Actor.App.Slug != "" && v.Actor.Team.Type == "App" {
-			actor := fmt.Sprintf("/app/%v", string(v.Actor.App.Slug))
-			list = append(list, actor)
-		}
 	}
 	return list
 }
+
+// GenerateCreateBranchProtectionRuleInput generates a githubv4.CreateBranchProtectionRuleInput
+// based on the v1alpha1.BranchProtectionRuleParameters passed as parameter
+func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRuleParameters, bypassForcePushIds, bypassPullRequestIds, pushIds []string) githubv4.CreateBranchProtectionRuleInput { // nolint:gocyclo
+	input := githubv4.CreateBranchProtectionRuleInput{
+		Pattern:      githubv4.String(params.Pattern),
+		RepositoryID: githubv4.NewID(githubv4.ID(*params.RepositoryID)),
+	}
+	input.BypassForcePushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassForcePushIds))
+	input.BypassPullRequestActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassPullRequestIds))
+
+	if pushIds != nil {
+		input.PushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(pushIds))
+		input.RestrictsPushes = githubv4.NewBoolean(true)
+	}
+
+	if params.IsAdminEnforced != nil {
+		input.IsAdminEnforced = (*githubv4.Boolean)(params.IsAdminEnforced)
+	}
+
+	if params.DismissesStaleReviews != nil {
+		input.DismissesStaleReviews = (*githubv4.Boolean)(params.DismissesStaleReviews)
+	}
+
+	if params.RequiredApprovingReviewCount != nil {
+		input.RequiredApprovingReviewCount = (*githubv4.Int)(params.RequiredApprovingReviewCount)
+		input.RequiresApprovingReviews = githubv4.NewBoolean(true)
+	}
+
+	if params.RequiredStatusCheckContexts != nil {
+		input.RequiredStatusCheckContexts = githubv4NewStringSlice(githubv4StringSlice(params.RequiredStatusCheckContexts))
+		input.RequiresStatusChecks = githubv4.NewBoolean(true)
+	}
+
+	if params.RequiresCodeOwnerReviews != nil {
+		input.RequiresCodeOwnerReviews = (*githubv4.Boolean)(params.RequiresCodeOwnerReviews)
+	}
+
+	if params.RequiresCommitSignatures != nil {
+		input.RequiresCommitSignatures = (*githubv4.Boolean)(params.RequiresCommitSignatures)
+	}
+
+	if params.RequiresConversationResolution != nil {
+		input.RequiresConversationResolution = (*githubv4.Boolean)(params.RequiresConversationResolution)
+	}
+
+	if params.RequiresLinearHistory != nil {
+		input.RequiresLinearHistory = (*githubv4.Boolean)(params.RequiresLinearHistory)
+	}
+
+	if params.RequiresStrictStatusChecks != nil {
+		input.RequiresStrictStatusChecks = (*githubv4.Boolean)(params.RequiresStrictStatusChecks)
+	}
+
+	return input
+}
+
+// IsTeamActor returns if the slug passed as parameter
+// is from a Team actor
+func IsTeamActor(slug string) bool {
+	return len(strings.Split(slug, "/")) == 3
+}
+
+func githubv4IDSliceEmpty(slice []string) []githubv4.ID {
+	ids := make([]githubv4.ID, 0)
+	for _, s := range slice {
+		ids = append(ids, githubv4.ID(s))
+	}
+	return ids
+}
+
+func githubv4StringSlice(slice []string) []githubv4.String {
+	ss := make([]githubv4.String, 0)
+	for _, s := range slice {
+		ss = append(ss, githubv4.String(s))
+	}
+	return ss
+}
+
+func githubv4NewIDSlice(v []githubv4.ID) *[]githubv4.ID { return &v }
+
+func githubv4NewStringSlice(v []githubv4.String) *[]githubv4.String { return &v }
