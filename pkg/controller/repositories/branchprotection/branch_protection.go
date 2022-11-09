@@ -15,6 +15,7 @@ package branchprotection
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
@@ -37,10 +38,11 @@ import (
 )
 
 const (
-	errUnexpectedObject          = "The managed resource is not a BranchProtectionRule resource"
-	errCheckBranchProtectionRule = "Cannot check if GitHub BranchProtectionRule exists"
-	errGetBranchProtectionRule   = "Cannot get GitHub BranchProtectionRule"
-	errCheckUpToDate             = "unable to determine if external resource is up to date"
+	errUnexpectedObject           = "The managed resource is not a BranchProtectionRule resource"
+	errCheckBranchProtectionRule  = "Cannot check if GitHub BranchProtectionRule exists"
+	errGetBranchProtectionRule    = "Cannot get GitHub BranchProtectionRule"
+	errCheckUpToDate              = "unable to determine if external resource is up to date"
+	errCreateBranchProtectionRule = "cannot create BranchProtectionRule"
 )
 
 // SetupBranchProtectionRule adds a controller that reconciles BranchProtectionRule.
@@ -148,10 +150,8 @@ func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.Ex
 	if !ok {
 		return managed.ExternalCreation{}, errors.New(errUnexpectedObject)
 	}
-	cr.SetConditions(xpv1.Creating())
-	fmt.Println("CREATE BRANCHPROTECTIONRULE")
 
-	return managed.ExternalCreation{}, nil
+	return managed.ExternalCreation{}, errors.Wrap(e.CreateBranchProtectionRule(ctx, cr), errCreateBranchProtectionRule)
 }
 
 func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.ExternalUpdate, error) {
@@ -234,4 +234,130 @@ func (e *external) GetBranchProtectionRule(ctx context.Context, id string) (bran
 	}
 
 	return query.Node.Node, nil
+}
+
+func (e *external) CreateBranchProtectionRule(ctx context.Context, cr *v1alpha1.BranchProtectionRule) error {
+	var mutate struct {
+		CreateBranchProtectionRule struct {
+			BranchProtectionRule struct {
+				ID githubv4.ID
+			}
+		} `graphql:"createBranchProtectionRule(input: $input)"`
+	}
+
+	var bypassForcePushIds, bypassPullRequestIds, pushIds []string
+	if cr.Spec.ForProvider.BypassForcePushAllowances != nil {
+		ids, err := e.getActorsIDs(
+			ctx,
+			cr.Spec.ForProvider.BypassForcePushAllowances,
+			cr.Spec.ForProvider.Owner,
+		)
+		if err != nil {
+			return err
+		}
+
+		bypassForcePushIds = ids
+	}
+
+	if cr.Spec.ForProvider.BypassPullRequestAllowances != nil {
+		ids, err := e.getActorsIDs(
+			ctx,
+			cr.Spec.ForProvider.BypassPullRequestAllowances,
+			cr.Spec.ForProvider.Owner,
+		)
+		if err != nil {
+			return err
+		}
+
+		bypassPullRequestIds = ids
+	}
+
+	if cr.Spec.ForProvider.PushAllowances != nil {
+		ids, err := e.getActorsIDs(
+			ctx,
+			cr.Spec.ForProvider.PushAllowances,
+			cr.Spec.ForProvider.Owner,
+		)
+		if err != nil {
+			return err
+		}
+
+		pushIds = ids
+	}
+
+	input := branchprotection.GenerateCreateBranchProtectionRuleInput(
+		cr.Spec.ForProvider,
+		bypassForcePushIds,
+		bypassPullRequestIds,
+		pushIds,
+	)
+
+	if err := e.gh.Mutate(ctx, &mutate, input, nil); err != nil {
+		return err
+	}
+
+	id, ok := mutate.CreateBranchProtectionRule.BranchProtectionRule.ID.(string)
+	if ok {
+		cr.Status.AtProvider.ID = id
+	}
+
+	return nil
+}
+
+func (e *external) getActorsIDs(ctx context.Context, actors []string, owner string) ([]string, error) {
+	ids := make([]string, 0)
+
+	for _, v := range actors {
+		id, err := e.getNodeIDv4(ctx, v, owner)
+		if err != nil {
+			return []string{}, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
+
+func (e *external) getNodeIDv4(ctx context.Context, actor string, owner string) (string, error) {
+	if branchprotection.IsTeamActor(actor) {
+		var queryTeam struct {
+			Organization struct {
+				Team struct {
+					ID string
+				} `graphql:"team(slug: $slug)"`
+			} `graphql:"organization(login: $organization)"`
+		}
+
+		teamName := strings.TrimPrefix(actor, fmt.Sprintf("/%v/", owner))
+
+		variables := map[string]interface{}{
+			"slug":         githubv4.String(teamName),
+			"organization": githubv4.String(owner),
+		}
+
+		if err := e.gh.Query(ctx, &queryTeam, variables); err != nil {
+			return "", err
+		}
+
+		return queryTeam.Organization.Team.ID, nil
+	}
+
+	// If code doesn't return earlier, assume the actor is User
+	var queryUser struct {
+		User struct {
+			ID string
+		} `graphql:"user(login: $user)"`
+	}
+
+	username := strings.TrimPrefix(actor, "/")
+
+	variables := map[string]interface{}{
+		"user": githubv4.String(username),
+	}
+
+	if err := e.gh.Query(ctx, &queryUser, variables); err != nil {
+		return "", err
+	}
+
+	return queryUser.User.ID, nil
 }
