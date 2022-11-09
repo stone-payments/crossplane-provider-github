@@ -335,6 +335,61 @@ func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 	return input
 }
 
+func GenerateUpdateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRuleParameters, bypassForcePushIds, bypassPullRequestIds, pushIds []string, id string) githubv4.UpdateBranchProtectionRuleInput {
+	input := githubv4.UpdateBranchProtectionRuleInput{
+		Pattern:                githubv4.NewString(githubv4.String(params.Pattern)),
+		BranchProtectionRuleID: id,
+	}
+
+	input.BypassForcePushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassForcePushIds))
+	input.BypassPullRequestActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassPullRequestIds))
+
+	if pushIds != nil {
+		input.PushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(pushIds))
+		input.RestrictsPushes = githubv4.NewBoolean(true)
+	}
+
+	if params.IsAdminEnforced != nil {
+		input.IsAdminEnforced = (*githubv4.Boolean)(params.IsAdminEnforced)
+	}
+
+	if params.DismissesStaleReviews != nil {
+		input.DismissesStaleReviews = (*githubv4.Boolean)(params.DismissesStaleReviews)
+	}
+
+	if params.RequiredApprovingReviewCount != nil {
+		input.RequiredApprovingReviewCount = (*githubv4.Int)(params.RequiredApprovingReviewCount)
+		input.RequiresApprovingReviews = githubv4.NewBoolean(true)
+	}
+
+	if params.RequiredStatusCheckContexts != nil {
+		input.RequiredStatusCheckContexts = githubv4NewStringSlice(githubv4StringSlice(params.RequiredStatusCheckContexts))
+		input.RequiresStatusChecks = githubv4.NewBoolean(true)
+	}
+
+	if params.RequiresCodeOwnerReviews != nil {
+		input.RequiresCodeOwnerReviews = (*githubv4.Boolean)(params.RequiresCodeOwnerReviews)
+	}
+
+	if params.RequiresCommitSignatures != nil {
+		input.RequiresCommitSignatures = (*githubv4.Boolean)(params.RequiresCommitSignatures)
+	}
+
+	if params.RequiresConversationResolution != nil {
+		input.RequiresConversationResolution = (*githubv4.Boolean)(params.RequiresConversationResolution)
+	}
+
+	if params.RequiresLinearHistory != nil {
+		input.RequiresLinearHistory = (*githubv4.Boolean)(params.RequiresLinearHistory)
+	}
+
+	if params.RequiresStrictStatusChecks != nil {
+		input.RequiresStrictStatusChecks = (*githubv4.Boolean)(params.RequiresStrictStatusChecks)
+	}
+
+	return input
+}
+
 // IsTeamActor returns if the slug passed as parameter
 // is from a Team actor
 func IsTeamActor(slug string) bool {

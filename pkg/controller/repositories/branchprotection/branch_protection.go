@@ -43,6 +43,7 @@ const (
 	errGetBranchProtectionRule    = "Cannot get GitHub BranchProtectionRule"
 	errCheckUpToDate              = "unable to determine if external resource is up to date"
 	errCreateBranchProtectionRule = "cannot create BranchProtectionRule"
+	errUpdateBranchProtectionRule = "cannot update BranchProtectionRule"
 )
 
 // SetupBranchProtectionRule adds a controller that reconciles BranchProtectionRule.
@@ -155,14 +156,12 @@ func (e *external) Create(ctx context.Context, mgd resource.Managed) (managed.Ex
 }
 
 func (e *external) Update(ctx context.Context, mgd resource.Managed) (managed.ExternalUpdate, error) {
-	_, ok := mgd.(*v1alpha1.BranchProtectionRule)
+	cr, ok := mgd.(*v1alpha1.BranchProtectionRule)
 	if !ok {
 		return managed.ExternalUpdate{}, errors.New(errUnexpectedObject)
 	}
 
-	fmt.Println("UPDATE BRANCHPROTECTIONRULE")
-
-	return managed.ExternalUpdate{}, nil
+	return managed.ExternalUpdate{}, errors.Wrap(e.UpdateBranchProtectionRule(ctx, cr), errUpdateBranchProtectionRule)
 }
 
 func (e *external) Delete(ctx context.Context, mgd resource.Managed) error {
@@ -301,6 +300,69 @@ func (e *external) CreateBranchProtectionRule(ctx context.Context, cr *v1alpha1.
 		cr.Status.AtProvider.ID = id
 	}
 
+	return nil
+}
+
+func (e *external) UpdateBranchProtectionRule(ctx context.Context, cr *v1alpha1.BranchProtectionRule) error {
+	var mutate struct {
+		UpdateBranchProtectionRule struct {
+			BranchProtectionRule struct {
+				ID githubv4.ID
+			}
+		} `graphql:"updateBranchProtectionRule(input: $input)"`
+	}
+
+	var bypassForcePushIds, bypassPullRequestIds, pushIds []string
+	if cr.Spec.ForProvider.BypassForcePushAllowances != nil {
+		ids, err := e.getActorsIDs(
+			ctx,
+			cr.Spec.ForProvider.BypassForcePushAllowances,
+			cr.Spec.ForProvider.Owner,
+		)
+		if err != nil {
+			return err
+		}
+
+		bypassForcePushIds = ids
+	}
+
+	if cr.Spec.ForProvider.BypassPullRequestAllowances != nil {
+		ids, err := e.getActorsIDs(
+			ctx,
+			cr.Spec.ForProvider.BypassPullRequestAllowances,
+			cr.Spec.ForProvider.Owner,
+		)
+		if err != nil {
+			return err
+		}
+
+		bypassPullRequestIds = ids
+	}
+
+	if cr.Spec.ForProvider.PushAllowances != nil {
+		ids, err := e.getActorsIDs(
+			ctx,
+			cr.Spec.ForProvider.PushAllowances,
+			cr.Spec.ForProvider.Owner,
+		)
+		if err != nil {
+			return err
+		}
+
+		pushIds = ids
+	}
+
+	input := branchprotection.GenerateUpdateBranchProtectionRuleInput(
+		cr.Spec.ForProvider,
+		bypassForcePushIds,
+		bypassPullRequestIds,
+		pushIds,
+		cr.Status.AtProvider.ID,
+	)
+
+	if err := e.gh.Mutate(ctx, &mutate, input, nil); err != nil {
+		return err
+	}
 	return nil
 }
 
