@@ -102,10 +102,6 @@ spec:
                   repository:
                     description: The name of the Repository.
                     type: string
-                  repositoryId:
-                    description: Repository global node ID. If not specified, will
-                      be inferred by the Repository name field.
-                    type: string
                   repositoryRef:
                     description: RepositoryRef references a Repository and retrieves
                       its name.
@@ -131,6 +127,7 @@ spec:
                         type: object
                     type: object
                   requiredApprovingReviewCount:
+                    default: 0
                     description: Number of approving reviews required in the pull
                       request. Must be a number between 0-6.
                     format: int32
@@ -159,6 +156,7 @@ spec:
                       to this branch.
                     type: boolean
                   requiresStrictStatusChecks:
+                    default: false
                     description: Whether branches are required to be up to date before
                       merging.
                     type: boolean
@@ -220,6 +218,10 @@ spec:
                 properties:
                   id:
                     description: Global ID that represents this BranchProtectionRule
+                    type: string
+                  repositoryId:
+                    description: Repository global node ID. Will be inferred by the
+                      spec name and owner field.
                     type: string
                 type: object
               conditions:

@@ -24,40 +24,32 @@ import (
 
 // BranchProtectionRuleParameters defines the desired state of a GitHub Repository BranchProtectionRule.
 type BranchProtectionRuleParameters struct {
-	// requiresStatusChecks -> saber com base no requiredStatusCheckContexts
-	// requiresApprovingReviews -> saber com base no requiredApprovingReviewCount
-	// restrictsPushes -> saber com base no pushAllowances
-
-	// Repository global node ID. If not specified, will be inferred by the
-	// Repository name field.
-	//
-	// +optional
-	RepositoryID *string `graphql:"repositoryId,omitempty" json:"repositoryId,omitempty"`
-
 	// The pattern to be protected.
-	Pattern string `graphql:"pattern" json:"pattern"`
+	//
+	// +immutable
+	Pattern string `json:"pattern"`
 
 	// The name of the Repository owner.
 	// The owner can be an organization or an user.
 	//
 	// +immutable
-	Owner string `graphql:"owner,omitempty" json:"owner"`
+	Owner string `json:"owner"`
 
 	// The name of the Repository.
 	//
 	// +immutable
 	// +optional
-	Repository *string `graphql:"repository,omitempty" json:"repository,omitempty"`
+	Repository *string `json:"repository,omitempty"`
 
 	// RepositoryRef references a Repository and retrieves its name.
 	//
 	// +optional
-	RepositoryRef *xpv1.Reference `graphql:"repositoryRef,omitempty" json:"repositoryRef,omitempty"`
+	RepositoryRef *xpv1.Reference `json:"repositoryRef,omitempty"`
 
 	// RepositorySelector selects a reference to a Repository.
 	//
 	// +optional
-	RepositorySelector *xpv1.Selector `graphql:"repositorySelector,omitempty" json:"repositorySelector,omitempty"`
+	RepositorySelector *xpv1.Selector `json:"repositorySelector,omitempty"`
 
 	// Actors who may force push to the protected branch. User, app, and team restrictions are only
 	// available for organization-owned repositories. Defaults to disabled.
@@ -66,7 +58,7 @@ type BranchProtectionRuleParameters struct {
 	// Teams should be specified in the format: /{organization}/{team-slug}
 	//
 	// +optional
-	BypassForcePushAllowances []string `graphql:"bypassForcePushAllowances,omitempty" json:"bypassForcePushAllowances,omitempty"`
+	BypassForcePushAllowances []string `json:"bypassForcePushAllowances,omitempty"`
 
 	// A list of actors able to bypass PRs for this branch protection rule. Defaults to disabled.
 	//
@@ -74,17 +66,17 @@ type BranchProtectionRuleParameters struct {
 	// Teams should be specified in the format: /{organization}/{team-slug}
 	//
 	// +optional
-	BypassPullRequestAllowances []string `graphql:"bypassPullRequestAllowances,omitempty" json:"bypassPullRequestAllowances,omitempty"`
+	BypassPullRequestAllowances []string `json:"bypassPullRequestAllowances,omitempty"`
 
 	// Whether new commits pushed to matching branches dismiss pull request review approvals.
 	//
 	// +optional
-	DismissesStaleReviews *bool `graphql:"dismissesStaleReviews,omitempty" json:"dismissesStaleReviews,omitempty"`
+	DismissesStaleReviews *bool `json:"dismissesStaleReviews,omitempty"`
 
 	// Whether admins can bypass branch protection rules.
 	//
 	// +optional
-	IsAdminEnforced *bool `graphql:"isAdminEnforced,omitempty" json:"isAdminEnforced,omitempty"`
+	IsAdminEnforced *bool `json:"isAdminEnforced,omitempty"`
 
 	// Actors who may push to the protected branch. Defaults to disabled.
 	//
@@ -92,7 +84,7 @@ type BranchProtectionRuleParameters struct {
 	// Teams should be specified in the format: /{organization}/{team-slug}
 	//
 	// +optional
-	PushAllowances []string `graphlql:"pushAllowances,omitempty" json:"pushAllowances,omitempty"`
+	PushAllowances []string `json:"pushAllowances,omitempty"`
 
 	// Number of approving reviews required in the pull request.
 	// Must be a number between 0-6.
@@ -100,38 +92,40 @@ type BranchProtectionRuleParameters struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=6
-	RequiredApprovingReviewCount *int32 `graphql:"requiredApprovingReviewCount,omitempty" json:"requiredApprovingReviewCount,omitempty"`
+	// +kubebuilder:default=0
+	RequiredApprovingReviewCount *int32 `json:"requiredApprovingReviewCount,omitempty"`
 
 	// List of required status check contexts that must pass for commits to be
 	// accepted to matching branches.
 	//
 	// +optional
-	RequiredStatusCheckContexts []string `graphql:"requiredStatusCheckContexts,omitempty" json:"requiredStatusCheckContexts,omitempty"`
+	RequiredStatusCheckContexts []string `json:"requiredStatusCheckContexts,omitempty"`
 
 	// Whether reviews from code owners are required to update matching branches.
 	//
 	// +optional
-	RequiresCodeOwnerReviews *bool `graphql:"requiresCodeOwnerReviews,omitempty" json:"requiresCodeOwnerReviews,omitempty"`
+	RequiresCodeOwnerReviews *bool `json:"requiresCodeOwnerReviews,omitempty"`
 
 	// Whether commits are required to be signed.
 	//
 	// +optional
-	RequiresCommitSignatures *bool `graphql:"requiresCommitSignatures,omitempty" json:"requiresCommitSignatures,omitempty"`
+	RequiresCommitSignatures *bool `json:"requiresCommitSignatures,omitempty"`
 
 	// Whether conversations are required to be resolved before merging.
 	//
 	// +optional
-	RequiresConversationResolution *bool `graphql:"requiresConversationResolution,omitempty" json:"requiresConversationResolution,omitempty"`
+	RequiresConversationResolution *bool `json:"requiresConversationResolution,omitempty"`
 
 	// Whether merge commits are prohibited from being pushed to this branch.
 	//
 	// +optional
-	RequiresLinearHistory *bool `graphql:"requiresLinearHistory,omitempty" json:"requiresLinearHistory,omitempty"`
+	RequiresLinearHistory *bool `json:"requiresLinearHistory,omitempty"`
 
 	// Whether branches are required to be up to date before merging.
 	//
 	// +optional
-	RequiresStrictStatusChecks *bool `graphql:"requiresStrictStatusChecks,omitempty" json:"requiresStrictStatusChecks,omitempty"`
+	// +kubebuilder:default=false
+	RequiresStrictStatusChecks *bool `json:"requiresStrictStatusChecks,omitempty"`
 }
 
 // BranchProtectionRuleSpec defines the desired state of a BranchProtectionRule.
@@ -144,7 +138,11 @@ type BranchProtectionRuleSpec struct {
 // BranchProtectionRuleObservation is the representation of the current state that is observed
 type BranchProtectionRuleObservation struct {
 	// Global ID that represents this BranchProtectionRule
-	ID string `graphql:"id,omitempty" json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
+
+	// Repository global node ID. Will be inferred by the
+	// spec name and owner field.
+	RepositoryID string `json:"repositoryId,omitempty"`
 }
 
 // BranchProtectionRuleStatus represents the observed state of a BranchProtectionRule.

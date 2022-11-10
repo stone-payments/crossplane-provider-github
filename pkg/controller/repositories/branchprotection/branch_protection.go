@@ -202,7 +202,7 @@ func (e *external) CheckBranchProtectionRuleExistance(ctx context.Context, cr *v
 		return false, err
 	}
 
-	cr.Spec.ForProvider.RepositoryID = (*string)(&query.Repository.ID)
+	cr.Status.AtProvider.RepositoryID = (string)(query.Repository.ID)
 
 	for _, node := range query.Repository.BranchProtectionRules.Nodes {
 		if node.Pattern == githubv4.String(cr.Spec.ForProvider.Pattern) {
@@ -243,51 +243,17 @@ func (e *external) CreateBranchProtectionRule(ctx context.Context, cr *v1alpha1.
 		} `graphql:"createBranchProtectionRule(input: $input)"`
 	}
 
-	var bypassForcePushIds, bypassPullRequestIds, pushIds []string
-	if cr.Spec.ForProvider.BypassForcePushAllowances != nil {
-		ids, err := e.getActorsIDs(
-			ctx,
-			cr.Spec.ForProvider.BypassForcePushAllowances,
-			cr.Spec.ForProvider.Owner,
-		)
-		if err != nil {
-			return err
-		}
-
-		bypassForcePushIds = ids
-	}
-
-	if cr.Spec.ForProvider.BypassPullRequestAllowances != nil {
-		ids, err := e.getActorsIDs(
-			ctx,
-			cr.Spec.ForProvider.BypassPullRequestAllowances,
-			cr.Spec.ForProvider.Owner,
-		)
-		if err != nil {
-			return err
-		}
-
-		bypassPullRequestIds = ids
-	}
-
-	if cr.Spec.ForProvider.PushAllowances != nil {
-		ids, err := e.getActorsIDs(
-			ctx,
-			cr.Spec.ForProvider.PushAllowances,
-			cr.Spec.ForProvider.Owner,
-		)
-		if err != nil {
-			return err
-		}
-
-		pushIds = ids
+	bypassForcePushIDs, bypassPullRequestIDs, pushIDs, err := e.getActorsIDs(ctx, &cr.Spec.ForProvider)
+	if err != nil {
+		return err
 	}
 
 	input := branchprotection.GenerateCreateBranchProtectionRuleInput(
 		cr.Spec.ForProvider,
-		bypassForcePushIds,
-		bypassPullRequestIds,
-		pushIds,
+		bypassForcePushIDs,
+		bypassPullRequestIDs,
+		pushIDs,
+		cr.Status.AtProvider.RepositoryID,
 	)
 
 	if err := e.gh.Mutate(ctx, &mutate, input, nil); err != nil {
@@ -311,51 +277,16 @@ func (e *external) UpdateBranchProtectionRule(ctx context.Context, cr *v1alpha1.
 		} `graphql:"updateBranchProtectionRule(input: $input)"`
 	}
 
-	var bypassForcePushIds, bypassPullRequestIds, pushIds []string
-	if cr.Spec.ForProvider.BypassForcePushAllowances != nil {
-		ids, err := e.getActorsIDs(
-			ctx,
-			cr.Spec.ForProvider.BypassForcePushAllowances,
-			cr.Spec.ForProvider.Owner,
-		)
-		if err != nil {
-			return err
-		}
-
-		bypassForcePushIds = ids
-	}
-
-	if cr.Spec.ForProvider.BypassPullRequestAllowances != nil {
-		ids, err := e.getActorsIDs(
-			ctx,
-			cr.Spec.ForProvider.BypassPullRequestAllowances,
-			cr.Spec.ForProvider.Owner,
-		)
-		if err != nil {
-			return err
-		}
-
-		bypassPullRequestIds = ids
-	}
-
-	if cr.Spec.ForProvider.PushAllowances != nil {
-		ids, err := e.getActorsIDs(
-			ctx,
-			cr.Spec.ForProvider.PushAllowances,
-			cr.Spec.ForProvider.Owner,
-		)
-		if err != nil {
-			return err
-		}
-
-		pushIds = ids
+	bypassForcePushIDs, bypassPullRequestIDs, pushIDs, err := e.getActorsIDs(ctx, &cr.Spec.ForProvider)
+	if err != nil {
+		return err
 	}
 
 	input := branchprotection.GenerateUpdateBranchProtectionRuleInput(
 		cr.Spec.ForProvider,
-		bypassForcePushIds,
-		bypassPullRequestIds,
-		pushIds,
+		bypassForcePushIDs,
+		bypassPullRequestIDs,
+		pushIDs,
 		cr.Status.AtProvider.ID,
 	)
 
@@ -379,11 +310,57 @@ func (e *external) DeleteBranchProtectionRule(ctx context.Context, id string) er
 	return e.gh.Mutate(ctx, &mutate, input, nil)
 }
 
-func (e *external) getActorsIDs(ctx context.Context, actors []string, owner string) ([]string, error) {
+// getActorsIDs returns the IDs slices in the following order:
+// BypassForcePushIDs -> BypassPullRequestIDs -> PushIDs
+func (e *external) getActorsIDs(ctx context.Context, params *v1alpha1.BranchProtectionRuleParameters) ([]string, []string, []string, error) {
+	var bypassForcePushIDs, bypassPullRequestIDs, pushIDs []string
+	if params.BypassForcePushAllowances != nil {
+		ids, err := e.getNodesIDs(
+			ctx,
+			params.BypassForcePushAllowances,
+			params.Owner,
+		)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		bypassForcePushIDs = ids
+	}
+
+	if params.BypassPullRequestAllowances != nil {
+		ids, err := e.getNodesIDs(
+			ctx,
+			params.BypassPullRequestAllowances,
+			params.Owner,
+		)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		bypassPullRequestIDs = ids
+	}
+
+	if params.PushAllowances != nil {
+		ids, err := e.getNodesIDs(
+			ctx,
+			params.PushAllowances,
+			params.Owner,
+		)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		pushIDs = ids
+	}
+
+	return bypassForcePushIDs, bypassPullRequestIDs, pushIDs, nil
+}
+
+func (e *external) getNodesIDs(ctx context.Context, nodes []string, owner string) ([]string, error) {
 	ids := make([]string, 0)
 
-	for _, v := range actors {
-		id, err := e.getNodeIDv4(ctx, v, owner)
+	for _, v := range nodes {
+		id, err := e.getNodeID(ctx, v, owner)
 		if err != nil {
 			return []string{}, err
 		}
@@ -393,7 +370,7 @@ func (e *external) getActorsIDs(ctx context.Context, actors []string, owner stri
 	return ids, nil
 }
 
-func (e *external) getNodeIDv4(ctx context.Context, actor string, owner string) (string, error) {
+func (e *external) getNodeID(ctx context.Context, actor string, owner string) (string, error) {
 	if branchprotection.IsTeamActor(actor) {
 		var queryTeam struct {
 			Organization struct {
