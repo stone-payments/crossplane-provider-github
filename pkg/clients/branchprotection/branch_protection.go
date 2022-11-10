@@ -281,18 +281,19 @@ func transformActorTypesToSlice(actors []ActorTypes, org string) []string {
 
 // GenerateCreateBranchProtectionRuleInput generates a githubv4.CreateBranchProtectionRuleInput
 // based on the v1alpha1.BranchProtectionRuleParameters passed as parameter
-func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRuleParameters, bypassForcePushIds, bypassPullRequestIds, pushIds []string) githubv4.CreateBranchProtectionRuleInput { // nolint:gocyclo
+func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRuleParameters, bypassForcePushIds, bypassPullRequestIds, pushIds []string, repositoryID string) githubv4.CreateBranchProtectionRuleInput { // nolint:gocyclo
 	input := githubv4.CreateBranchProtectionRuleInput{
 		Pattern:      githubv4.String(params.Pattern),
-		RepositoryID: githubv4.NewID(githubv4.ID(*params.RepositoryID)),
+		RepositoryID: githubv4.NewID(githubv4.ID(repositoryID)),
 	}
+	var restrictsPushes, requiresApprovingReviews, requiresStatusChecks bool
+
 	input.BypassForcePushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassForcePushIds))
 	input.BypassPullRequestActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassPullRequestIds))
+	input.PushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(pushIds))
 
-	if pushIds != nil {
-		input.PushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(pushIds))
-		input.RestrictsPushes = githubv4.NewBoolean(true)
-	}
+	restrictsPushes = restrictsPushes || len(pushIds) > 0
+	requiresApprovingReviews = requiresApprovingReviews || len(bypassPullRequestIds) > 0
 
 	if params.IsAdminEnforced != nil {
 		input.IsAdminEnforced = (*githubv4.Boolean)(params.IsAdminEnforced)
@@ -300,20 +301,22 @@ func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 
 	if params.DismissesStaleReviews != nil {
 		input.DismissesStaleReviews = (*githubv4.Boolean)(params.DismissesStaleReviews)
+		requiresApprovingReviews = requiresApprovingReviews || *params.DismissesStaleReviews
 	}
 
 	if params.RequiredApprovingReviewCount != nil {
 		input.RequiredApprovingReviewCount = (*githubv4.Int)(params.RequiredApprovingReviewCount)
-		input.RequiresApprovingReviews = githubv4.NewBoolean(true)
+		requiresApprovingReviews = requiresApprovingReviews || *params.RequiredApprovingReviewCount != 0
 	}
 
 	if params.RequiredStatusCheckContexts != nil {
 		input.RequiredStatusCheckContexts = githubv4NewStringSlice(githubv4StringSlice(params.RequiredStatusCheckContexts))
-		input.RequiresStatusChecks = githubv4.NewBoolean(true)
+		requiresStatusChecks = requiresStatusChecks || len(params.RequiredStatusCheckContexts) > 0
 	}
 
 	if params.RequiresCodeOwnerReviews != nil {
 		input.RequiresCodeOwnerReviews = (*githubv4.Boolean)(params.RequiresCodeOwnerReviews)
+		requiresApprovingReviews = requiresApprovingReviews || *params.RequiresCodeOwnerReviews
 	}
 
 	if params.RequiresCommitSignatures != nil {
@@ -330,7 +333,12 @@ func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 
 	if params.RequiresStrictStatusChecks != nil {
 		input.RequiresStrictStatusChecks = (*githubv4.Boolean)(params.RequiresStrictStatusChecks)
+		requiresStatusChecks = requiresStatusChecks || *params.RequiresStrictStatusChecks
 	}
+
+	input.RequiresApprovingReviews = (*githubv4.Boolean)(&requiresApprovingReviews)
+	input.RequiresStatusChecks = (*githubv4.Boolean)(&requiresStatusChecks)
+	input.RestrictsPushes = (*githubv4.Boolean)(&restrictsPushes)
 
 	return input
 }
@@ -343,13 +351,14 @@ func GenerateUpdateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 		BranchProtectionRuleID: id,
 	}
 
+	var restrictsPushes, requiresApprovingReviews, requiresStatusChecks bool
+
 	input.BypassForcePushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassForcePushIds))
 	input.BypassPullRequestActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassPullRequestIds))
+	input.PushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(pushIds))
 
-	if pushIds != nil {
-		input.PushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(pushIds))
-		input.RestrictsPushes = githubv4.NewBoolean(true)
-	}
+	restrictsPushes = restrictsPushes || len(pushIds) > 0
+	requiresApprovingReviews = requiresApprovingReviews || len(bypassPullRequestIds) > 0
 
 	if params.IsAdminEnforced != nil {
 		input.IsAdminEnforced = (*githubv4.Boolean)(params.IsAdminEnforced)
@@ -357,20 +366,22 @@ func GenerateUpdateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 
 	if params.DismissesStaleReviews != nil {
 		input.DismissesStaleReviews = (*githubv4.Boolean)(params.DismissesStaleReviews)
+		requiresApprovingReviews = requiresApprovingReviews || *params.DismissesStaleReviews
 	}
 
 	if params.RequiredApprovingReviewCount != nil {
 		input.RequiredApprovingReviewCount = (*githubv4.Int)(params.RequiredApprovingReviewCount)
-		input.RequiresApprovingReviews = githubv4.NewBoolean(true)
+		requiresApprovingReviews = requiresApprovingReviews || *params.RequiredApprovingReviewCount != 0
 	}
 
 	if params.RequiredStatusCheckContexts != nil {
 		input.RequiredStatusCheckContexts = githubv4NewStringSlice(githubv4StringSlice(params.RequiredStatusCheckContexts))
-		input.RequiresStatusChecks = githubv4.NewBoolean(true)
+		requiresStatusChecks = requiresStatusChecks || len(params.RequiredStatusCheckContexts) > 0
 	}
 
 	if params.RequiresCodeOwnerReviews != nil {
 		input.RequiresCodeOwnerReviews = (*githubv4.Boolean)(params.RequiresCodeOwnerReviews)
+		requiresApprovingReviews = requiresApprovingReviews || *params.RequiresCodeOwnerReviews
 	}
 
 	if params.RequiresCommitSignatures != nil {
@@ -387,7 +398,12 @@ func GenerateUpdateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 
 	if params.RequiresStrictStatusChecks != nil {
 		input.RequiresStrictStatusChecks = (*githubv4.Boolean)(params.RequiresStrictStatusChecks)
+		requiresStatusChecks = requiresStatusChecks || *params.RequiresStrictStatusChecks
 	}
+
+	input.RequiresApprovingReviews = (*githubv4.Boolean)(&requiresApprovingReviews)
+	input.RequiresStatusChecks = (*githubv4.Boolean)(&requiresStatusChecks)
+	input.RestrictsPushes = (*githubv4.Boolean)(&restrictsPushes)
 
 	return input
 }
