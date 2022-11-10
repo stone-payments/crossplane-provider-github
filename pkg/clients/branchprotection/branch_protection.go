@@ -271,7 +271,7 @@ func transformActorTypesToSlice(actors []ActorTypes, org string) []string {
 			list = append(list, actor)
 		}
 
-		if v.Actor.User.Login != "" && v.Actor.Team.Type == "User" {
+		if v.Actor.User.Login != "" && v.Actor.User.Type == "User" {
 			actor := fmt.Sprintf("/%v", string(v.Actor.User.Login))
 			list = append(list, actor)
 		}
