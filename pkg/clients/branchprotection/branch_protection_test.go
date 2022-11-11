@@ -33,8 +33,8 @@ var (
 	fakeFalse               = false
 	fakeCount         int32 = 2
 	fakeCheck               = "check"
-	fakeIds                 = []string{"fake", "fake2"}
-	fakeId                  = "fake3"
+	fakeIDs                 = []string{"fake", "fake2"}
+	fakeID                  = "fake3"
 )
 
 func params() *v1alpha1.BranchProtectionRuleParameters {
@@ -71,12 +71,12 @@ func params() *v1alpha1.BranchProtectionRuleParameters {
 func createInput() githubv4.CreateBranchProtectionRuleInput {
 	return githubv4.CreateBranchProtectionRuleInput{
 		Pattern:                      githubv4.String(fakePattern),
-		RepositoryID:                 githubv4.NewID(githubv4.ID(fakeId)),
-		BypassForcePushActorIDs:      githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIds)),
-		BypassPullRequestActorIDs:    githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIds)),
+		RepositoryID:                 githubv4.NewID(githubv4.ID(fakeID)),
+		BypassForcePushActorIDs:      githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIDs)),
+		BypassPullRequestActorIDs:    githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIDs)),
 		DismissesStaleReviews:        (*githubv4.Boolean)(&fakeTrue),
 		IsAdminEnforced:              (*githubv4.Boolean)(&fakeTrue),
-		PushActorIDs:                 githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIds)),
+		PushActorIDs:                 githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIDs)),
 		RequiredApprovingReviewCount: (*githubv4.Int)(&fakeCount),
 		RequiresCodeOwnerReviews:     (*githubv4.Boolean)(&fakeTrue),
 		RequiredStatusCheckContexts: &[]githubv4.String{
@@ -95,12 +95,12 @@ func createInput() githubv4.CreateBranchProtectionRuleInput {
 func updateInput() githubv4.UpdateBranchProtectionRuleInput {
 	return githubv4.UpdateBranchProtectionRuleInput{
 		Pattern:                      githubv4.NewString(githubv4.String(fakePattern)),
-		BranchProtectionRuleID:       fakeId,
-		BypassForcePushActorIDs:      githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIds)),
-		BypassPullRequestActorIDs:    githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIds)),
+		BranchProtectionRuleID:       fakeID,
+		BypassForcePushActorIDs:      githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIDs)),
+		BypassPullRequestActorIDs:    githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIDs)),
 		DismissesStaleReviews:        (*githubv4.Boolean)(&fakeTrue),
 		IsAdminEnforced:              (*githubv4.Boolean)(&fakeTrue),
-		PushActorIDs:                 githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIds)),
+		PushActorIDs:                 githubv4NewIDSlice(githubv4IDSliceEmpty(fakeIDs)),
 		RequiredApprovingReviewCount: (*githubv4.Int)(&fakeCount),
 		RequiresCodeOwnerReviews:     (*githubv4.Boolean)(&fakeTrue),
 		RequiredStatusCheckContexts: &[]githubv4.String{
@@ -341,8 +341,8 @@ func TestGenerateCreateBranchProtectionRuleInput(t *testing.T) {
 		"GenerateInput": {
 			args: args{
 				params:       params(),
-				repositoryID: fakeId,
-				ids:          fakeIds,
+				repositoryID: fakeID,
+				ids:          fakeIDs,
 			},
 			want: createInput(),
 		},
@@ -371,8 +371,8 @@ func TestGenerateUpdateBranchProtectionRuleInput(t *testing.T) {
 		"GenerateInput": {
 			args: args{
 				params:       params(),
-				repositoryID: fakeId,
-				ids:          fakeIds,
+				repositoryID: fakeID,
+				ids:          fakeIDs,
 			},
 			want: updateInput(),
 		},

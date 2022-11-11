@@ -28,12 +28,12 @@ type MockServiceBranchProtection struct {
 	MockMutate func(ctx context.Context, m interface{}, input githubv4.Input, variables map[string]interface{}) error
 }
 
-// Create is a fake Create SDK method
+// Query is a fake Query SDK method
 func (m *MockServiceBranchProtection) Query(ctx context.Context, q interface{}, variables map[string]interface{}) error {
 	return m.MockQuery(ctx, q, variables)
 }
 
-// Get is a fake Get SDK method
+// Mutate is a fake Mutate SDK method
 func (m *MockServiceBranchProtection) Mutate(ctx context.Context, mutate interface{}, input githubv4.Input, variables map[string]interface{}) error {
 	return m.MockMutate(ctx, mutate, input, variables)
 }
