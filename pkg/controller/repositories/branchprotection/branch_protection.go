@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/pkg/errors"
 	"github.com/shurcooL/githubv4"
 	"k8s.io/client-go/util/workqueue"
@@ -130,7 +131,7 @@ func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.E
 
 	currentSpec := cr.Spec.ForProvider.DeepCopy()
 	branchprotection.LateInitialize(&cr.Spec.ForProvider, external)
-	lateInitialized := !cmp.Equal(currentSpec, &cr.Spec.ForProvider)
+	lateInitialized := !cmp.Equal(currentSpec, &cr.Spec.ForProvider, cmpopts.EquateEmpty())
 
 	cr.Status.SetConditions(xpv1.Available())
 
