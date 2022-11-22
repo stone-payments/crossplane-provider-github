@@ -285,8 +285,12 @@ func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 	input := githubv4.CreateBranchProtectionRuleInput{
 		Pattern:      githubv4.String(params.Pattern),
 		RepositoryID: githubv4.NewID(githubv4.ID(repositoryID)),
+		// Setting RequiresStatusChecks without defining the properties below it (RequiredStatusCheckContexts or RequiresStrictStatusChecks)
+		// has no effect in the branch protection behavior. We need to have it set to true because we can't modify the child properties
+		// with it disabled -- when it is disabled, it causes an update loop in the managed resource.
+		RequiresStatusChecks: githubv4.NewBoolean(true),
 	}
-	var restrictsPushes, requiresApprovingReviews, requiresStatusChecks bool
+	var restrictsPushes, requiresApprovingReviews bool
 
 	input.BypassForcePushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassForcePushIds))
 	input.BypassPullRequestActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassPullRequestIds))
@@ -311,7 +315,6 @@ func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 
 	if params.RequiredStatusCheckContexts != nil {
 		input.RequiredStatusCheckContexts = githubv4NewStringSlice(githubv4StringSlice(params.RequiredStatusCheckContexts))
-		requiresStatusChecks = requiresStatusChecks || len(params.RequiredStatusCheckContexts) > 0
 	}
 
 	if params.RequiresCodeOwnerReviews != nil {
@@ -333,11 +336,9 @@ func GenerateCreateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 
 	if params.RequiresStrictStatusChecks != nil {
 		input.RequiresStrictStatusChecks = (*githubv4.Boolean)(params.RequiresStrictStatusChecks)
-		requiresStatusChecks = requiresStatusChecks || *params.RequiresStrictStatusChecks
 	}
 
 	input.RequiresApprovingReviews = (*githubv4.Boolean)(&requiresApprovingReviews)
-	input.RequiresStatusChecks = (*githubv4.Boolean)(&requiresStatusChecks)
 	input.RestrictsPushes = (*githubv4.Boolean)(&restrictsPushes)
 
 	return input
@@ -349,9 +350,13 @@ func GenerateUpdateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 	input := githubv4.UpdateBranchProtectionRuleInput{
 		Pattern:                githubv4.NewString(githubv4.String(params.Pattern)),
 		BranchProtectionRuleID: id,
+		// Setting RequiresStatusChecks without defining the properties below it (RequiredStatusCheckContexts or RequiresStrictStatusChecks)
+		// has no effect in the branch protection behavior. We need to have it set to true because we can't modify the child properties
+		// with it disabled -- when it is disabled, it causes an update loop in the managed resource.
+		RequiresStatusChecks: githubv4.NewBoolean(true),
 	}
 
-	var restrictsPushes, requiresApprovingReviews, requiresStatusChecks bool
+	var restrictsPushes, requiresApprovingReviews bool
 
 	input.BypassForcePushActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassForcePushIds))
 	input.BypassPullRequestActorIDs = githubv4NewIDSlice(githubv4IDSliceEmpty(bypassPullRequestIds))
@@ -376,7 +381,6 @@ func GenerateUpdateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 
 	if params.RequiredStatusCheckContexts != nil {
 		input.RequiredStatusCheckContexts = githubv4NewStringSlice(githubv4StringSlice(params.RequiredStatusCheckContexts))
-		requiresStatusChecks = requiresStatusChecks || len(params.RequiredStatusCheckContexts) > 0
 	}
 
 	if params.RequiresCodeOwnerReviews != nil {
@@ -398,11 +402,9 @@ func GenerateUpdateBranchProtectionRuleInput(params v1alpha1.BranchProtectionRul
 
 	if params.RequiresStrictStatusChecks != nil {
 		input.RequiresStrictStatusChecks = (*githubv4.Boolean)(params.RequiresStrictStatusChecks)
-		requiresStatusChecks = requiresStatusChecks || *params.RequiresStrictStatusChecks
 	}
 
 	input.RequiresApprovingReviews = (*githubv4.Boolean)(&requiresApprovingReviews)
-	input.RequiresStatusChecks = (*githubv4.Boolean)(&requiresStatusChecks)
 	input.RestrictsPushes = (*githubv4.Boolean)(&restrictsPushes)
 
 	return input
