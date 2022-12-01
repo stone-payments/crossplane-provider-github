@@ -24,10 +24,10 @@ import (
 	gc "github.com/crossplane-contrib/provider-github/pkg/clients"
 	"github.com/crossplane-contrib/provider-github/pkg/clients/actions/fake"
 	v1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
+	perr "github.com/crossplane/crossplane-runtime/pkg/errors"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-github/v48/github"
-	perr "github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 )
 
