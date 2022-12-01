@@ -19,17 +19,16 @@ import (
 	"context"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
+	"github.com/crossplane/crossplane-runtime/pkg/controller"
 	"github.com/crossplane/crossplane-runtime/pkg/event"
-	"github.com/crossplane/crossplane-runtime/pkg/logging"
 	"github.com/crossplane/crossplane-runtime/pkg/ratelimiter"
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
+
 	"github.com/google/go-github/v48/github"
 	"github.com/pkg/errors"
-	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
 
 	"github.com/crossplane-contrib/provider-github/apis/repositories/v1alpha1"
 	ghclient "github.com/crossplane-contrib/provider-github/pkg/clients"
@@ -48,31 +47,32 @@ const (
 )
 
 // SetupContent adds a controller that reconciles Repositories.
-func SetupContent(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
+func SetupContent(mgr ctrl.Manager, o controller.Options) error {
 	name := managed.ControllerName(v1alpha1.ContentGroupKind)
+
+	r := managed.NewReconciler(mgr,
+		resource.ManagedKind(v1alpha1.ContentGroupVersionKind),
+		managed.WithExternalConnecter(
+			&contentConnector{
+				client:      mgr.GetClient(),
+				newClientFn: content.NewService,
+			},
+		),
+		managed.WithConnectionPublishers(),
+		managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
+		managed.WithInitializers(
+			managed.NewDefaultProviderConfig(mgr.GetClient()),
+			managed.NewNameAsExternalName(mgr.GetClient()),
+		),
+		managed.WithLogger(o.Logger.WithValues("controller", name)),
+		managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name))),
+	)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
-		WithOptions(controller.Options{
-			RateLimiter: ratelimiter.NewDefaultManagedRateLimiter(rl),
-		}).
+		WithOptions(o.ForControllerRuntime()).
 		For(&v1alpha1.Content{}).
-		Complete(managed.NewReconciler(mgr,
-			resource.ManagedKind(v1alpha1.ContentGroupVersionKind),
-			managed.WithExternalConnecter(
-				&contentConnector{
-					client:      mgr.GetClient(),
-					newClientFn: content.NewService,
-				},
-			),
-			managed.WithConnectionPublishers(),
-			managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
-			managed.WithInitializers(
-				managed.NewDefaultProviderConfig(mgr.GetClient()),
-				managed.NewNameAsExternalName(mgr.GetClient()),
-			),
-			managed.WithLogger(l.WithValues("controller", name)),
-			managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name)))))
+		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
 type contentConnector struct {

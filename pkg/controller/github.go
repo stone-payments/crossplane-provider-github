@@ -16,10 +16,9 @@ limitations under the License.
 package controller
 
 import (
-	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/crossplane/crossplane-runtime/pkg/logging"
+	"github.com/crossplane/crossplane-runtime/pkg/controller"
 
 	repositorysecret "github.com/crossplane-contrib/provider-github/pkg/controller/actions"
 	"github.com/crossplane-contrib/provider-github/pkg/controller/config"
@@ -32,8 +31,8 @@ import (
 
 // Setup creates all GitHub controllers with the supplied logger and adds them
 // to the supplied manager.
-func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
-	for _, setup := range []func(ctrl.Manager, logging.Logger, workqueue.RateLimiter) error{
+func Setup(mgr ctrl.Manager, o controller.Options) error {
+	for _, setup := range []func(ctrl.Manager, controller.Options) error{
 		config.Setup,
 		organizations.SetupMembership,
 		repository.SetupRepository,
@@ -42,7 +41,7 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 		orphanref.SetupOrphanRef,
 		branchprotection.SetupBranchProtectionRule,
 	} {
-		if err := setup(mgr, l, rl); err != nil {
+		if err := setup(mgr, o); err != nil {
 			return err
 		}
 	}

@@ -111,7 +111,7 @@ func (in *BranchProtectionRuleParameters) DeepCopyInto(out *BranchProtectionRule
 	if in.RepositoryRef != nil {
 		in, out := &in.RepositoryRef, &out.RepositoryRef
 		*out = new(v1.Reference)
-		**out = **in
+		(*in).DeepCopyInto(*out)
 	}
 	if in.RepositorySelector != nil {
 		in, out := &in.RepositorySelector, &out.RepositorySelector
@@ -309,7 +309,7 @@ func (in *ContentParameters) DeepCopyInto(out *ContentParameters) {
 	if in.RepositoryRef != nil {
 		in, out := &in.RepositoryRef, &out.RepositoryRef
 		*out = new(v1.Reference)
-		**out = **in
+		(*in).DeepCopyInto(*out)
 	}
 	if in.RepositorySelector != nil {
 		in, out := &in.RepositorySelector, &out.RepositorySelector
@@ -581,7 +581,7 @@ func (in *RepositoryParameters) DeepCopyInto(out *RepositoryParameters) {
 	if in.Template != nil {
 		in, out := &in.Template, &out.Template
 		*out = new(v1.Reference)
-		**out = **in
+		(*in).DeepCopyInto(*out)
 	}
 }
 
