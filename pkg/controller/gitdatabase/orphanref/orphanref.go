@@ -62,6 +62,7 @@ func SetupOrphanRef(mgr ctrl.Manager, o controller.Options) error {
 			managed.NewDefaultProviderConfig(mgr.GetClient()),
 			managed.NewNameAsExternalName(mgr.GetClient()),
 		),
+		managed.WithPollInterval(o.PollInterval),
 		managed.WithLogger(o.Logger.WithValues("controller", name)),
 		managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name))),
 	)
