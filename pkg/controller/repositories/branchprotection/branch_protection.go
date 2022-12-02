@@ -44,6 +44,7 @@ const (
 	errCreateBranchProtectionRule = "cannot create BranchProtectionRule"
 	errUpdateBranchProtectionRule = "cannot update BranchProtectionRule"
 	errDeleteBranchProtectionRule = "cannot delete BranchProtectionRule"
+	errStatusUpdate               = "cannot update the BranchProtectionRule substatus resource"
 )
 
 // SetupBranchProtectionRule adds a controller that reconciles BranchProtectionRule.
@@ -113,9 +114,17 @@ func (e *external) Observe(ctx context.Context, mgd resource.Managed) (managed.E
 		return managed.ExternalObservation{}, errors.New(errUnexpectedObject)
 	}
 
+	repositoryID := cr.Status.AtProvider.RepositoryID
 	isCreated, err := e.CheckBranchProtectionRuleExistance(ctx, cr)
 	if err != nil {
 		return managed.ExternalObservation{}, errors.Wrap(err, errCheckBranchProtectionRule)
+	}
+
+	if repositoryID != cr.Status.AtProvider.RepositoryID {
+		// cr.Status.AtProvider.RepositoryID was updated
+		if err := e.client.Status().Update(ctx, cr); err != nil {
+			return managed.ExternalObservation{}, errors.Wrap(err, errStatusUpdate)
+		}
 	}
 
 	if !isCreated {
