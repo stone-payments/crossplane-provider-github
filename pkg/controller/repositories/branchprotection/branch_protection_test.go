@@ -130,6 +130,11 @@ func TestObserve(t *testing.T) {
 		"CannotFindBranchProtectionRule": {
 			reason: "Must return resource doesn't exists if the BranchProtectionRule cannot be found",
 			args: args{
+				kube: &test.MockClient{
+					MockStatusUpdate: func(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
+						return nil
+					},
+				},
 				mg: newBranchProtectionRule(
 					withPattern("fake"),
 					withRepository(fakeRepository),
@@ -218,6 +223,11 @@ func TestObserve(t *testing.T) {
 						return nil
 					},
 				},
+				kube: &test.MockClient{
+					MockStatusUpdate: func(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
+						return nil
+					},
+				},
 			},
 			want: want{
 				eo: managed.ExternalObservation{
@@ -273,6 +283,11 @@ func TestObserve(t *testing.T) {
 
 						getQuery.Node.Node = newExternalBranchProtectionRule()
 
+						return nil
+					},
+				},
+				kube: &test.MockClient{
+					MockStatusUpdate: func(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
 						return nil
 					},
 				},
